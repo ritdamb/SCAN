@@ -17,6 +17,7 @@ import io.nayuki.bmpio.Rgb888Image;
 public class Test {
 
 	public static void main(String[] args) throws IOException {
+		
 		InputStream in = new FileInputStream("22.bmp");
 		BmpImage bmp;
 		try {
@@ -26,9 +27,27 @@ public class Test {
 		}
 		Rgb888Image image = bmp.image;
 		
-	    for (int xPixel = 0; xPixel < image.getWidth(); xPixel++){
+		//RGB888 value
+		
+		for (int xPixel = 0; xPixel < image.getWidth(); xPixel++){
 	    	for (int yPixel = 0; yPixel < image.getHeight(); yPixel++){
 	            	int p = (image.getRgb888Pixel(xPixel, yPixel));
+	            	System.out.println(new Color(p));
+	            	System.out.println(p);
+	            		
+	    	}
+	    }
+		
+		
+		System.out.println();
+		
+		
+		// RGB value
+		BufferedImage image2 = ImageIO.read(new File("22.bmp"));
+		
+	    for (int xPixel = 0; xPixel < image2.getWidth(); xPixel++){
+	    	for (int yPixel = 0; yPixel < image2.getHeight(); yPixel++){
+	            	int p = (image2.getRGB(xPixel, yPixel));
 	            	System.out.println(new Color(p));
 	            	System.out.println(p);
 	            		
