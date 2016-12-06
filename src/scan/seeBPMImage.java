@@ -18,9 +18,9 @@ public class seeBPMImage {
         
         int[][] array2D = new int[image.getWidth()][image.getHeight()];
         int x = 0,y = 0;
-        for (int yPixel = 0; yPixel < image.getHeight(); yPixel++, x++){
+        for (int yPixel = 0; yPixel < image.getWidth(); yPixel++, x++){
         	y=0;
-        	for (int xPixel = 0; xPixel < image.getWidth(); xPixel++, y++) {      
+        	for (int xPixel = 0; xPixel < image.getHeight(); xPixel++, y++) {      
 
                     int color = image.getRGB(xPixel, yPixel);
                     System.out.println("Pixel [" + xPixel + "," + yPixel + "]: " + (color & 0xFF) );	
