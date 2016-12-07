@@ -10,4 +10,20 @@ public class Block {
 		this.yStart = yStart;
 		this.yEnd = yEnd;
 	}
+
+	public int getxStart() {
+		return xStart;
+	}
+
+	public int getxEnd() {
+		return xEnd;
+	}
+
+	public int getyStart() {
+		return yStart;
+	}
+
+	public int getyEnd() {
+		return yEnd;
+	}
 }
