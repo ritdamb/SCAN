@@ -80,7 +80,7 @@ public class seeBPMImage {
 		
 		for(int i=0; i<blocks.size(); i++){
 			Block b = blocks.get(i);
-			System.out.println("Blocco: xStart="+b.xStart+"; xEnd="+b.xEnd+"; yStart="+b.yStart+"; yEnd="+b.yEnd);
+			//System.out.println("Blocco: xStart="+b.xStart+"; xEnd="+b.xEnd+"; yStart="+b.yStart+"; yEnd="+b.yEnd);
 		}
 		
 		return blocks;
