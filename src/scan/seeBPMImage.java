@@ -30,7 +30,7 @@ public class seeBPMImage {
 			}
 		}
 		
-		getBlocks(array2D, 8);
+		ArrayList<Block> blocks = getBlocks(array2D, 8);
 
 		/*BufferedImage image2;
         for(int i=0; i<array2D.length; i++) {
@@ -47,7 +47,7 @@ public class seeBPMImage {
 
 
 	//La matrice in input deve essere già quadrata multiplo di N, eventualmente il controllo sulle dimensioni lo faremo prima
-	public static void getBlocks (int matrix[][], int N){
+	public static ArrayList<Block> getBlocks (int matrix[][], int N){
 		int len = matrix.length;
 		ArrayList<Block> blocks = new ArrayList<Block>();
 
@@ -80,6 +80,8 @@ public class seeBPMImage {
 			Block b = blocks.get(i);
 			System.out.println("Blocco: xStart="+b.xStart+"; xEnd="+b.xEnd+"; yStart="+b.yStart+"; yEnd="+b.yEnd);
 		}
+		
+		return blocks;
 
 	}
 }
