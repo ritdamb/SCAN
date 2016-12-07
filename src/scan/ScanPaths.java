@@ -21,6 +21,11 @@ public class ScanPaths {
 					System.out.println("Pixel ["+j+"]"+"["+i+"]:"+" "+matrix[j][i]);
 				}
 			}
+			else{
+				for(int j = xStart; j <= xEnd; j++){
+					System.out.println("Pixel ["+j+"]"+"["+i+"]:"+" "+matrix[j][i]);
+				}
+			}
 		}
 		
 	}
