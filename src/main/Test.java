@@ -19,7 +19,7 @@ public class Test {
 	 static final String NORTH_OVEST="NORTH_OVEST";
 	 static final String SOUTH_OVEST="SOUTH_OVEST";
 	 static final String SOUTH_EAST="SOUTH_EAST";
-	 static final String  O0="03021213232221110100102030313233";
+	 static final String O0="03021213232221110100102030313233";
 	 static final String O1="00101101021222212030313233231303";
 	 static final String O2="30312120101112223233231303020100";
 	 static final String O3="33232232312111121303020100102030";
@@ -28,8 +28,8 @@ public class Test {
 		
 		
 
-		ArrayList<Path> scan4O2 = new ArrayList<Path>();
-		populate(scan4O2,O2);
+		ArrayList<Path> scan4O3 = new ArrayList<Path>();
+		populate(scan4O3,O3);
 		
 		int[][] matrix = getMatrix();
 		ArrayList<Block> blocks = seeBPMImage.getBlocks(matrix, 8);
@@ -39,12 +39,65 @@ public class Test {
 		//scan path north-ovest
 		//ArrayList<Path> scan8no = extendsO1(scan4O1,8);
 		//scan path south-overst
-		ArrayList<Path> scan8so = extendsO2(scan4O2,8);
-
-		scanOnImage(scan8so,blocks.get(0),matrix, SOUTH_OVEST);
+		//ArrayList<Path> scan8so = extendsO2(scan4O2,8);
+		//scan path south-east
+		ArrayList<Path> scan8se = extendsO3(scan4O3,8);
+		
+	
+		scanOnImage(scan8se,blocks.get(0),matrix, SOUTH_EAST);
 		
 		
 	}
+private static ArrayList<Path> extendsO3(ArrayList<Path> scan4, int dim){
+		
+		ArrayList<Path> scan = new ArrayList<Path>();
+
+		
+		for (Path p : scan4) {
+			scan.add(new Path(p.getX()+4,p.getY()+4));
+		}
+		
+		int i=scan4.size()-1;
+		int n=dim;
+		int goRx=0,goUp=0,goDown=0,goLx=0;
+		
+		
+		while( i < ((n*n)-1) ){
+			Path currentPath = scan.get(i);
+			if(currentPath.getX() == n-1){ // cambio colonna
+				scan.add(new Path(currentPath.getX(), currentPath.getY()-1));
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()-1));
+				
+				goUp = ((n-1)-currentPath.getY());
+				goRx=((n-1)-currentPath.getY())+1;
+				goLx=((n-1)-currentPath.getY())+1;
+				goDown=((n-1)-currentPath.getY())+2;
+				i= i+2;
+			}else if(goUp != 0){ // salgo
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()));
+				i++;
+				goUp--;
+			}else if(goRx != 0){ // vado a destra
+				scan.add(new Path(currentPath.getX(), currentPath.getY()+1));
+				i++;
+				goRx--;
+			}else if(goRx == 0 && currentPath.getY() == n-1){//cambio riga
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()));
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()-1));
+				i= i+2;
+			}else if( goLx != 0 ){ // vado a sinistra
+				scan.add(new Path(currentPath.getX(), currentPath.getY()-1));
+				i++;
+				goLx--;
+			}else if(goDown != 0 ){// scendo
+				scan.add(new Path(currentPath.getX()+1, currentPath.getY()));
+				i++;
+				goDown--;
+			}
+		}
+		
+		return scan;
+}
 	
 	private static ArrayList<Path> extendsO2(ArrayList<Path> scan4, int dim){
 		
