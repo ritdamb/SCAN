@@ -32,7 +32,9 @@ public class seeBPMImage {
 		
 		ArrayList<Block> blocks = getBlocks(array2D, 8);
 		ScanPaths s = new ScanPaths();
-		s.C0(array2D, blocks.get(0));
+		//s.C0(array2D, blocks.get(0));
+		s.O0(array2D, blocks.get(0));
+
 
 		/*BufferedImage image2;
         for(int i=0; i<array2D.length; i++) {
@@ -80,7 +82,7 @@ public class seeBPMImage {
 		
 		for(int i=0; i<blocks.size(); i++){
 			Block b = blocks.get(i);
-			System.out.println("Blocco: xStart="+b.xStart+"; xEnd="+b.xEnd+"; yStart="+b.yStart+"; yEnd="+b.yEnd);
+			//System.out.println("Blocco: xStart="+b.xStart+"; xEnd="+b.xEnd+"; yStart="+b.yStart+"; yEnd="+b.yEnd);
 		}
 		
 		return blocks;
