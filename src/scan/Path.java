@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 public class Path {
 	String startAngle;
+	String usedPath;
+	Path previousPath;
 	ArrayList<Pixel> path;
 	
 	public Path(String startAngle, ArrayList<Pixel> path) {

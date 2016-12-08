@@ -7,13 +7,15 @@ public class BestPathOutput {
 	int E; //Sum E of absolute values of prediction errors along P
 	int B; //Numero di bit necessari per la codifica di P
 	ArrayList<Integer> L; //Sequence L of prediction errors along P
+	Pixel lastPixel;
 	
-	public BestPathOutput(String bestPathName, int a, int b, ArrayList<Integer> l) {
+	public BestPathOutput(String bestPathName, int a, int b, ArrayList<Integer> l, Pixel lp) {
 		super();
 		this.bestPathName = bestPathName;
 		E = a;
 		B = b;
 		L = l;
+		lastPixel = lp;
 	}
 
 	public BestPathOutput() {
@@ -51,6 +53,8 @@ public class BestPathOutput {
 	public ArrayList<Integer> getL() {
 		return L;
 	}
+	
+	
 	
 	
 }

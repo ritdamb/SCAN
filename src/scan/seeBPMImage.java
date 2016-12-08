@@ -32,10 +32,16 @@ public class seeBPMImage {
 		}
 		
 		ArrayList<Block> blocks = getBlocks(array2D, 8);
-		BestPath(array2D, blocks.get(0), 8);
+		Pixel lastPixel = null;
+		for(int i=0; i<blocks.size();i++){
+
+			BestPathOutput bpo = BestPath(array2D, blocks.get(0), 8, lastPixel);
+			lastPixel = bpo.lastPixel;
+		}
 		
-		ScanPaths s = new ScanPaths();
-	    Path pathC0 = s.C0(array2D, blocks.get(0));
+		
+		//ScanPaths s = new ScanPaths();
+	    //Path pathC0 = s.C0(array2D, blocks.get(0));
 		//s.O0(array2D, blocks.get(0));
 
 
@@ -92,19 +98,20 @@ public class seeBPMImage {
 	}
 	
 	
-	public static BestPathOutput BestPath(int matrix[][], Block b, int BlockSize){
+	public static BestPathOutput BestPath(int matrix[][], Block b, int BlockSize, Pixel PrevLastPixel){
 		BestPathOutput bpo = null;
 		
 		ScanPaths s = new ScanPaths();
-		Path pathC0 = s.C0(matrix, b);
+		Path path = s.C0(matrix, b);
 		
-		BlockError(matrix, pathC0);
+		BlockError(matrix, path, PrevLastPixel);
 		
 		
+		bpo.lastPixel = path.path.get( path.path.size()-1 ); 
 		return bpo;
 	}
 	
-	public static BlockErrorOutput BlockError(int matrix[][], Path path){
+	public static BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel){
 		BlockErrorOutput beo = null;
 		
 		Pixel pixel, prevPixel = null; //prevPixel sarebbe il nostro pixel s
@@ -117,14 +124,41 @@ public class seeBPMImage {
 			pixel=path.getPixel(i);
 			//vado a vedere se è il primo pixel scansionato dell'immagine
 			//sarà sempre quello in alto a destra
-			if(pixel.x == (matrix.length -1) && pixel.y == 0){
+			if(pixel.x == (matrix.length -1) && pixel.y == 0){//TO-DO sistemare il controllo
 				L.add(0);
 				prevPixel=pixel;
 				scannedPixel.put(pixel.x+"-"+pixel.y, null); //aggiungo il pixel alla mappa nella forma "511-0"
 				continue;
 			}
-			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) al primo pixel? vado a vedere quello successivo
-				Pixel nextPixel = path.getPixel(1);
+			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) 
+							//al primo pixel? Vedo l'angolo di partenza
+				String startAngle = path.getStartAngle();
+				
+				if(startAngle.equals("NE")){//UR {N,E}
+					if((pixel.y - 1) >= 0  && (pixel.x + 1) < matrix.length){ //vedo se il pixel a Nord e ad Est non escono fuori dalla matrice
+						int q = matrix[pixel.x][pixel.y-1];
+						int r = matrix[pixel.x+1][pixel.y];
+						int p =  matrix[pixel.x][pixel.y];
+						//vedo se i pixel q ed r sono stati già scansionati
+						if(scannedPixel.containsKey(pixel.x+"-"+ (pixel.y-1)) && scannedPixel.containsKey((pixel.x+1) +"-"+pixel.y)){
+							int e = p -(q/r)/2;
+							L.add(e);
+						}
+						else{
+							
+						}
+						
+					}
+				}
+				else if(startAngle.equals("NW")){//UL {N,W}
+					
+				}
+				else if(startAngle.equals("SW")){//BL {S,W}
+					
+				}
+				else if(startAngle.equals("SE")){//BR {S,E}
+					
+				}
 				
 			}
 			
