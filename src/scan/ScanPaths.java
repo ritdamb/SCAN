@@ -27,66 +27,6 @@ public class ScanPaths {
 				}
 			}
 		}
-		
-	}
-	
-	public void O0(int matrix[][], Block b){
-		int LimiteX = 1;
-		int LimiteY = 1;
-		int xAdd = -1;
-		int yAdd = 1;
-		char turn = 'x';
-		
-		int myX = b.xEnd;
-		int myY = b.yStart;
-		System.out.println("Pixel ["+myX+"]"+"["+myY+"]:"+" "+matrix[myX][myY]);
-		
-		int total = 0;
-		int BlockSize = (b.xEnd - b.xStart) + 1;
-		
-		while(total < (BlockSize * BlockSize)){
-			if(turn == 'x'){
-				for(int i=1; i <= LimiteX; i++){
-					int x = myX + xAdd;
-					if(x > b.xEnd){
-						turn = 'y';
-						xAdd = xAdd * -1;
-						break;
-					}
-					myX = x; 
-					System.out.println("Pixel ["+myX+"]"+"["+myY+"]:"+" "+matrix[myX][myY]);
-					
-					if(i == LimiteX){
-						turn = 'y';
-						LimiteX ++;
-						xAdd = xAdd * -1;
-						break;
-					}
-				}
-				
-			}
-			else{
-				for(int i=1; i <= LimiteY; i++){
-					int y = myY + yAdd;
-					if(y < b.yStart){
-						turn = 'x';	
-						yAdd = yAdd * -1;
-						break;
-					}
-					myY = y;
-					
-					System.out.println("Pixel ["+myX+"]"+"["+myY+"]:"+" "+matrix[myX][myY]);
-					
-					if(i == LimiteY){
-						turn = 'x';
-						LimiteY ++;
-						yAdd = yAdd * -1;
-						break;
-					}
-				}
-			}
-		}
-		
 	}
 
 }

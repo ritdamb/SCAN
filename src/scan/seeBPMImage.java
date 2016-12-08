@@ -32,8 +32,8 @@ public class seeBPMImage {
 		
 		ArrayList<Block> blocks = getBlocks(array2D, 8);
 		ScanPaths s = new ScanPaths();
-		//s.C0(array2D, blocks.get(0));
-		s.O0(array2D, blocks.get(0));
+		s.C0(array2D, blocks.get(0));
+		//s.O0(array2D, blocks.get(0));
 
 
 		/*BufferedImage image2;
