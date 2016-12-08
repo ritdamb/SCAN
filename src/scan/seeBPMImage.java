@@ -8,9 +8,10 @@ import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class seeBPMImage {
-
+	static HashMap<String, String> scannedPixel = new HashMap<String, String>();
 
 	public static void main(String[] args) throws IOException {
 
@@ -31,8 +32,10 @@ public class seeBPMImage {
 		}
 		
 		ArrayList<Block> blocks = getBlocks(array2D, 8);
+		BestPath(array2D, blocks.get(0), 8);
+		
 		ScanPaths s = new ScanPaths();
-		s.C0(array2D, blocks.get(0));
+	    Path pathC0 = s.C0(array2D, blocks.get(0));
 		//s.O0(array2D, blocks.get(0));
 
 
@@ -86,7 +89,53 @@ public class seeBPMImage {
 		}
 		
 		return blocks;
-
+	}
+	
+	
+	public static BestPathOutput BestPath(int matrix[][], Block b, int BlockSize){
+		BestPathOutput bpo = null;
+		
+		ScanPaths s = new ScanPaths();
+		Path pathC0 = s.C0(matrix, b);
+		
+		BlockError(matrix, pathC0);
+		
+		
+		return bpo;
+	}
+	
+	public static BlockErrorOutput BlockError(int matrix[][], Path path){
+		BlockErrorOutput beo = null;
+		
+		Pixel pixel, prevPixel = null; //prevPixel sarebbe il nostro pixel s
+		Character LastHorizontalMove = null;
+		Character LastVerticalMove = null;
+		
+		ArrayList<Integer> L = new ArrayList<Integer>(); //Sequence L of prediction errors along P
+		
+		for(int i=0; i < path.size(); i++){
+			pixel=path.getPixel(i);
+			//vado a vedere se è il primo pixel scansionato dell'immagine
+			//sarà sempre quello in alto a destra
+			if(pixel.x == (matrix.length -1) && pixel.y == 0){
+				L.add(0);
+				prevPixel=pixel;
+				scannedPixel.put(pixel.x+"-"+pixel.y, null); //aggiungo il pixel alla mappa nella forma "511-0"
+				continue;
+			}
+			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) al primo pixel? vado a vedere quello successivo
+				Pixel nextPixel = path.getPixel(1);
+				
+			}
+			
+			
+			
+			
+			
+		}
+		
+				
+		return beo;
 	}
 		
 }
