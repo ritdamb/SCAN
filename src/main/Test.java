@@ -28,126 +28,176 @@ public class Test {
 		
 		
 
-		ArrayList<Path> scan4O1 = new ArrayList<Path>();
-		populate(scan4O1,O1);
-		
+		ArrayList<Path> scan4O2 = new ArrayList<Path>();
+		populate(scan4O2,O2);
 		
 		int[][] matrix = getMatrix();
 		ArrayList<Block> blocks = seeBPMImage.getBlocks(matrix, 8);
 
 		//scan path north-east
-		//ArrayList<Path> scan8ne = extendsO0(scan4O0);
+		//ArrayList<Path> scan8ne = extendsO0(scan4O0,8);
 		//scan path north-ovest
-		ArrayList<Path> scan8no = extendsO1(scan4O1);
-		
-		scanOnImage(scan8no,blocks.get(0),matrix, NORTH_OVEST);
+		//ArrayList<Path> scan8no = extendsO1(scan4O1,8);
+		//scan path south-overst
+		ArrayList<Path> scan8so = extendsO2(scan4O2,8);
+
+		scanOnImage(scan8so,blocks.get(0),matrix, SOUTH_OVEST);
 		
 		
 	}
 	
-	private static ArrayList<Path> extendsO1(ArrayList<Path> scan4){
-		//conversione scanpath 8x8
+	private static ArrayList<Path> extendsO2(ArrayList<Path> scan4, int dim){
 		
-				ArrayList<Path> scan8no = new ArrayList<Path>();
+		ArrayList<Path> scan = new ArrayList<Path>();
+
+		
+		for (Path p : scan4) {
+			scan.add(new Path(p.getX()+4,p.getY()));
+		}
+		
+		int i=scan4.size()-1;
+		int n=dim;
+		int goRx=0,goUp=0,goDown=0,goLx=0;
+		
+		
+		while( i < ((n*n)-1) ){
+			Path currentPath = scan.get(i);
+			if(currentPath.getY() == 0){ // cambio riga
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()));
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()+1));
+				goRx=((n-1)-currentPath.getX());
+				goDown=((n-1)-currentPath.getX())+1;
+				goUp = ((n-1)-currentPath.getX())+1;
+				goLx=((n-1)-currentPath.getX())+2;
+				i= i+2;
+			}else if(goRx != 0){ // vado a destra
+				scan.add(new Path(currentPath.getX(), currentPath.getY()+1));
+				i++;
+				goRx--;
+			}else if(goDown != 0 ){// scendo
+				scan.add(new Path(currentPath.getX()+1, currentPath.getY()));
+				i++;
+				goDown--;
+			}else if(goDown == 0 && currentPath.getX() == n-1){//cambio colonna
+				scan.add(new Path(currentPath.getX(), currentPath.getY()+1));
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()+1));
+				i= i+2;
+			}else if(goUp != 0){ // salgo
+				scan.add(new Path(currentPath.getX()-1, currentPath.getY()));
+				i++;
+				goUp--;
+			}else if( goLx != 0 ){ // vado a sinistra
+				scan.add(new Path(currentPath.getX(), currentPath.getY()-1));
+				i++;
+				goLx--;
+				
+			}
+		}
+		
+		return scan;
+}
+	
+	private static ArrayList<Path> extendsO1(ArrayList<Path> scan4, int dim){
+		
+				ArrayList<Path> scan = new ArrayList<Path>();
 
 				
 				for (Path p : scan4) {
-					scan8no.add(p);
+					scan.add(p);
 				}
 				
-				int i=15;
-				int n=8;
+				int i=scan4.size()-1;
+				int n=dim;
 				int goRx=0,goUp=0,goDown=0,goLx=0;
 				
 				
 				while( i < ((n*n)-1) ){
-					Path currentPath = scan8no.get(i);
+					Path currentPath = scan.get(i);
 					if(currentPath.getX() == 0){ // cambio colonna
-						scan8no.add(new Path(currentPath.getX(), currentPath.getY()+1));
-						scan8no.add(new Path(currentPath.getX()+1, currentPath.getY()+1));
-						goLx=currentPath.getY()+1;
-						goUp = currentPath.getY()+2;
+						scan.add(new Path(currentPath.getX(), currentPath.getY()+1));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()+1));
 						goDown=currentPath.getY();
+						goLx=currentPath.getY()+1;
 						goRx=currentPath.getY()+1;
+						goUp = currentPath.getY()+2;
 						i= i+2;
 					}else if(goDown != 0 ){// scendo
-						scan8no.add(new Path(currentPath.getX()+1, currentPath.getY()));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()));
 						i++;
 						goDown--;
 					}else if( goLx != 0 ){ // vado a sinistra
-						scan8no.add(new Path(currentPath.getX(), currentPath.getY()-1));
+						scan.add(new Path(currentPath.getX(), currentPath.getY()-1));
 						i++;
 						goLx--;
 						
 					}else if(goLx == 0 && currentPath.getY() == 0){//cambio riga
-						scan8no.add(new Path(currentPath.getX()+1, currentPath.getY()));
-						scan8no.add(new Path(currentPath.getX()+1, currentPath.getY()+1));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()+1));
 						i= i+2;
 					}else if(goRx != 0){ // vado a destra
-						scan8no.add(new Path(currentPath.getX(), currentPath.getY()+1));
+						scan.add(new Path(currentPath.getX(), currentPath.getY()+1));
 						i++;
 						goRx--;
 					}else if(goUp != 0){ // salgo
-						scan8no.add(new Path(currentPath.getX()-1, currentPath.getY()));
+						scan.add(new Path(currentPath.getX()-1, currentPath.getY()));
 						i++;
 						goUp--;
 					}
 				}
 				
-				return scan8no;
+				return scan;
 	}
 	
-	private static ArrayList<Path> extendsO0(ArrayList<Path> scan4){
-		//conversione scanpath 8x8
+	private static ArrayList<Path> extendsO0(ArrayList<Path> scan4, int dim){
 		
-				ArrayList<Path> scan8ne = new ArrayList<Path>();
+				ArrayList<Path> scan = new ArrayList<Path>();
 
 				
 				for (Path p : scan4) {
-					scan8ne.add(new Path(p.getX(),p.getY()+4));
+					scan.add(new Path(p.getX(),p.getY()+4));
 				}
 				
-				int i=15;
-				int n=8;
+				int i=scan4.size()-1;
+				int n=dim;
 				int goRx=0,goUp=0,goDown=0,goLx=0;
 				
 				// scan path north-east
 				
 				while( i < ((n*n)-1) ){
-					Path currentPath = scan8ne.get(i);
+					Path currentPath = scan.get(i);
 					if(currentPath.getY() == n-1){ // cambio riga
-						scan8ne.add(new Path(currentPath.getX()+1, currentPath.getY()));
-						scan8ne.add(new Path(currentPath.getX()+1, currentPath.getY()-1));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()-1));
 						goLx=currentPath.getX();
 						goUp = currentPath.getX()+1;
 						goDown=currentPath.getX()+1;
 						goRx=currentPath.getX()+2;
 						i= i+2;
 					}else if( goLx != 0 ){ // vado a sinistra
-						scan8ne.add(new Path(currentPath.getX(), currentPath.getY()-1));
+						scan.add(new Path(currentPath.getX(), currentPath.getY()-1));
 						i++;
 						goLx--;
 						
 					}else if(goUp != 0){ // salgo
-						scan8ne.add(new Path(currentPath.getX()-1, currentPath.getY()));
+						scan.add(new Path(currentPath.getX()-1, currentPath.getY()));
 						i++;
 						goUp--;
 					}else if(goUp == 0 && currentPath.getX() == 0){//cambio colonna
-						scan8ne.add(new Path(currentPath.getX(), currentPath.getY()-1));
-						scan8ne.add(new Path(currentPath.getX()+1, currentPath.getY()-1));
+						scan.add(new Path(currentPath.getX(), currentPath.getY()-1));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()-1));
 						i= i+2;
 					}else if(goDown != 0 ){// scendo
-						scan8ne.add(new Path(currentPath.getX()+1, currentPath.getY()));
+						scan.add(new Path(currentPath.getX()+1, currentPath.getY()));
 						i++;
 						goDown--;
 					}else if(goRx != 0){ // vado a destra
-						scan8ne.add(new Path(currentPath.getX(), currentPath.getY()+1));
+						scan.add(new Path(currentPath.getX(), currentPath.getY()+1));
 						i++;
 						goRx--;
 					}
 				}
 				
-				return scan8ne;
+				return scan;
 	}
 	
 	private static void scanOnImage(ArrayList<Path> scan8, Block block, int[][] matrix, String direction) {
