@@ -115,16 +115,14 @@ public class seeBPMImage {
 		BlockErrorOutput beo = null;
 		
 		Pixel pixel, prevPixel = null; //prevPixel sarebbe il nostro pixel s
-		Character LastHorizontalMove = null;
-		Character LastVerticalMove = null;
+		String lastPredictorUsed = null;
 		
 		ArrayList<Integer> L = new ArrayList<Integer>(); //Sequence L of prediction errors along P
 		
 		for(int i=0; i < path.size(); i++){
 			pixel=path.getPixel(i);
-			//vado a vedere se è il primo pixel scansionato dell'immagine
-			//sarà sempre quello in alto a destra
-			if(pixel.x == (matrix.length -1) && pixel.y == 0){//TO-DO sistemare il controllo
+			//vado a vedere se è il primo pixel del primo blocco scansionato dell'immagine
+			if(PrevLastPixel == null && i == 0){
 				L.add(0);
 				prevPixel=pixel;
 				scannedPixel.put(pixel.x+"-"+pixel.y, null); //aggiungo il pixel alla mappa nella forma "511-0"
@@ -135,41 +133,192 @@ public class seeBPMImage {
 				String startAngle = path.getStartAngle();
 				
 				if(startAngle.equals("NE")){//UR {N,E}
-					if((pixel.y - 1) >= 0  && (pixel.x + 1) < matrix.length){ //vedo se il pixel a Nord e ad Est non escono fuori dalla matrice
-						int q = matrix[pixel.x][pixel.y-1];
-						int r = matrix[pixel.x+1][pixel.y];
-						int p =  matrix[pixel.x][pixel.y];
-						//vedo se i pixel q ed r sono stati già scansionati
-						if(scannedPixel.containsKey(pixel.x+"-"+ (pixel.y-1)) && scannedPixel.containsKey((pixel.x+1) +"-"+pixel.y)){
-							int e = p -(q/r)/2;
-							L.add(e);
-						}
-						else{
-							
-						}
-						
-					}
-				}
-				else if(startAngle.equals("NW")){//UL {N,W}
-					
-				}
-				else if(startAngle.equals("SW")){//BL {S,W}
-					
-				}
-				else if(startAngle.equals("SE")){//BR {S,E}
-					
+					int e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+					L.add(e);
+					lastPredictorUsed = "UR";
 				}
 				
+				else if(startAngle.equals("NW")){//UL {N,W}
+					int e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+					L.add(e);
+					lastPredictorUsed = "UL";
+				}
+				
+				else if(startAngle.equals("SW")){//BL {S,W}
+					int e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+					L.add(e);
+					lastPredictorUsed = "BL";
+				}
+				else if(startAngle.equals("SE")){//BR {S,E}
+					int e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+					L.add(e);
+					lastPredictorUsed = "BR";
+				}
+				
+				prevPixel=pixel;
+				
 			}
-			
-			
-			
-			
+			else { //qui entro se non sono nel primo pixel del path
+				//La prima cosa da fare è determinare il movimento
+				
+				int Xmove = pixel.x - prevPixel.x;
+				int Ymove = pixel.y - prevPixel.y;
+				
+				String s = Xmove+";"+Ymove;
+				int e = 0;
+				
+				if(s.equals("-1;0")){ //spostamento verso Ovest
+					
+					if(lastPredictorUsed.startsWith("U")){
+						e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+					}
+					else{
+						e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+					}
+				}
+				else if(s.equals("0;1")){ //spostamento verso Sud
+					if(lastPredictorUsed.endsWith("R")){
+						e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+					}
+					else{
+						e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+					}
+				}
+				else if(s.equals("1;0")){ //spostamento verso Est
+					if(lastPredictorUsed.startsWith("U")){
+						e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+					}
+					else{
+						e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+					}
+				}
+				else if(s.equals("0;-1")){ //spostamento verso Nord
+					if(lastPredictorUsed.endsWith("R")){
+						e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+					}
+					else{
+						e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+					}
+				}
+				else if(s.equals("-1;1")){ //spostamento verso Sud-Ovest
+					e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+				}
+				else if(s.equals("1;1")){ //spostamento verso Sud-Est
+					e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+				}
+				else if(s.equals("1;-1")){ //spostamento verso Nord-Est
+					e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+				}
+				else if(s.equals("-1;-1")){ //spostamento verso Nord-Ovest
+					e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+				}
+				
+				L.add(e);
+				
+				prevPixel = pixel;
+				
+			}	
 			
 		}
 		
-				
+		//faccio la somma dei valori assoluti di tutti gli errori di predizione
+		int sum = 0;
+		for (Integer e : L) {
+			sum += Math.abs(e);
+		}
+		
+		beo.E = sum;
+		beo.L = L;
+
 		return beo;
+	}
+	
+	public static int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, String predictor, int matrix[][]){
+		
+		boolean use_s_Pixel = false;
+		
+		if(predictor == "UR"){
+			if((actualPixel.y - 1) >= 0  && (actualPixel.x + 1) < matrix.length){ //vedo se il pixel a Nord e ad Est non escono fuori dalla matrice
+				Pixel q = new Pixel(actualPixel.x, actualPixel.y-1);
+				Pixel r = new Pixel(actualPixel.x+1, actualPixel.y);
+				//vedo se i pixel q ed r sono stati già scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+					int pVal = matrix[actualPixel.x][actualPixel.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int e = pVal - (qVal+rVal)/2;
+					return e;
+				}
+				else
+					use_s_Pixel = true;
+			}
+			else
+				use_s_Pixel = true;
+		}
+		else if(predictor == "UL"){
+			if((actualPixel.y - 1) >= 0  && (actualPixel.x - 1) >= 0){ //vedo se il pixel a Nord e ad Ovest non escono fuori dalla matrice
+				Pixel q = new Pixel(actualPixel.x, actualPixel.y-1);
+				Pixel r = new Pixel(actualPixel.x-1, actualPixel.y);
+				//vedo se i pixel q ed r sono stati già scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+					int pVal = matrix[actualPixel.x][actualPixel.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int e = pVal - (qVal+rVal)/2;
+					return e;
+				}
+				else
+					use_s_Pixel = true;
+			}
+			else
+				use_s_Pixel = true;
+			
+		}
+		else if(predictor == "BL"){
+			if((actualPixel.y + 1) < matrix.length  && (actualPixel.x - 1) >= 0){ //vedo se il pixel a Sud e ad Ovest non escono fuori dalla matrice
+				Pixel q = new Pixel(actualPixel.x, actualPixel.y+1);
+				Pixel r = new Pixel(actualPixel.x-1, actualPixel.y);
+				//vedo se i pixel q ed r sono stati già scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+					int pVal = matrix[actualPixel.x][actualPixel.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int e = pVal - (qVal+rVal)/2;
+					return e;
+				}
+				else
+					use_s_Pixel = true;
+			}
+			else
+				use_s_Pixel = true;
+		}
+		else if(predictor == "BR"){
+			if((actualPixel.y + 1) < matrix.length  && (actualPixel.x + 1) < matrix.length){ //vedo se il pixel a Sud e ad Est non escono fuori dalla matrice
+				Pixel q = new Pixel(actualPixel.x, actualPixel.y+1);
+				Pixel r = new Pixel(actualPixel.x+1, actualPixel.y);
+				//vedo se i pixel q ed r sono stati già scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+					int pVal = matrix[actualPixel.x][actualPixel.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int e = pVal - (qVal+rVal)/2;
+					return e;
+				}
+				else
+					use_s_Pixel = true;
+			}
+			else
+				use_s_Pixel = true;
+		}
+		
+		if (use_s_Pixel){
+			int pVal = matrix[actualPixel.x][actualPixel.y];
+			int sVal = matrix[prevPixel.x][prevPixel.y];
+			int e = pVal - sVal;
+			return e;
+		}
+		
+		return -1;
 	}
 		
 }
