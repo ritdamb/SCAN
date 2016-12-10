@@ -1,7 +1,10 @@
-package scan;
+package model;
 
 public class Block {
-	int xStart, xEnd, yStart, yEnd;
+	private int xStart;
+	private int xEnd;
+	private int yStart;
+	private int yEnd;
 
 	public Block(int xStart, int xEnd, int yStart, int yEnd) {
 		super();

@@ -1,9 +1,9 @@
-package main;
+package model;
 
-public class Path{
-	int x,y;
+public class Pixel{
+	public int x,y;
 	
-	public Path(int x,int y){
+	public Pixel(int x,int y){
 		this.x=x;
 		this.y=y;
 	}

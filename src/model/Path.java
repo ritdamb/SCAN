@@ -1,9 +1,9 @@
-package scan;
+package model;
 
 import java.util.ArrayList;
 
 public class Path {
-	String startAngle;
+	public String startAngle;
 	String usedPath;
 	Path previousPath;
 	ArrayList<Pixel> path;

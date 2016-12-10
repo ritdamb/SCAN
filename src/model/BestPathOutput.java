@@ -1,4 +1,4 @@
-package scan;
+package model;
 
 import java.util.ArrayList;
 
@@ -7,7 +7,7 @@ public class BestPathOutput {
 	int E; //Sum E of absolute values of prediction errors along P
 	int B; //Numero di bit necessari per la codifica di P
 	ArrayList<Integer> L; //Sequence L of prediction errors along P
-	Pixel lastPixel;
+	private Pixel lastPixel;
 	
 	public BestPathOutput(String bestPathName, int a, int b, ArrayList<Integer> l, Pixel lp) {
 		super();
@@ -15,7 +15,7 @@ public class BestPathOutput {
 		E = a;
 		B = b;
 		L = l;
-		lastPixel = lp;
+		setLastPixel(lp);
 	}
 
 	public BestPathOutput() {
@@ -52,6 +52,14 @@ public class BestPathOutput {
 
 	public ArrayList<Integer> getL() {
 		return L;
+	}
+
+	public Pixel getLastPixel() {
+		return lastPixel;
+	}
+
+	public void setLastPixel(Pixel lastPixel) {
+		this.lastPixel = lastPixel;
 	}
 	
 	
