@@ -35,7 +35,7 @@ public class seeBPMImage {
 		Pixel lastPixel = null;
 		for(int i=0; i<blocks.size();i++){
 
-			BestPathOutput bpo = BestPath(array2D, blocks.get(0), 8, lastPixel);
+			BestPathOutput bpo = BestPath(array2D, blocks.get(i), 8, lastPixel);
 			lastPixel = bpo.lastPixel;
 		}
 		
@@ -99,20 +99,19 @@ public class seeBPMImage {
 	
 	
 	public static BestPathOutput BestPath(int matrix[][], Block b, int BlockSize, Pixel PrevLastPixel){
-		BestPathOutput bpo = null;
+		BestPathOutput bpo = new BestPathOutput();
 		
 		ScanPaths s = new ScanPaths();
 		Path path = s.C0(matrix, b);
 		
-		BlockError(matrix, path, PrevLastPixel);
-		
+		BlockErrorOutput beo = BlockError(matrix, path, PrevLastPixel);
+		System.out.println(beo.E+" "+beo.L.size());
 		
 		bpo.lastPixel = path.path.get( path.path.size()-1 ); 
 		return bpo;
 	}
 	
 	public static BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel){
-		BlockErrorOutput beo = null;
 		
 		Pixel pixel, prevPixel = null; //prevPixel sarebbe il nostro pixel s
 		String lastPredictorUsed = null;
@@ -126,6 +125,15 @@ public class seeBPMImage {
 				L.add(0);
 				prevPixel=pixel;
 				scannedPixel.put(pixel.x+"-"+pixel.y, null); //aggiungo il pixel alla mappa nella forma "511-0"
+				if(path.startAngle.equals("NE"))
+					lastPredictorUsed="UR";
+				else if(path.startAngle.equals("NW"))
+					lastPredictorUsed="UL";
+				else if(path.startAngle.equals("SW"))
+					lastPredictorUsed="BL";
+				else if(path.startAngle.equals("SE"))
+					lastPredictorUsed="BR";
+				
 				continue;
 			}
 			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) 
@@ -170,47 +178,47 @@ public class seeBPMImage {
 				if(s.equals("-1;0")){ //spostamento verso Ovest
 					
 					if(lastPredictorUsed.startsWith("U")){
-						e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "UR", matrix);
 					}
 					else{
-						e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "BR", matrix);
 					}
 				}
 				else if(s.equals("0;1")){ //spostamento verso Sud
 					if(lastPredictorUsed.endsWith("R")){
-						e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "UR", matrix);
 					}
 					else{
-						e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "UL", matrix);
 					}
 				}
 				else if(s.equals("1;0")){ //spostamento verso Est
 					if(lastPredictorUsed.startsWith("U")){
-						e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "UL", matrix);
 					}
 					else{
-						e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "BL", matrix);
 					}
 				}
 				else if(s.equals("0;-1")){ //spostamento verso Nord
 					if(lastPredictorUsed.endsWith("R")){
-						e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "BR", matrix);
 					}
 					else{
-						e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+						e = calcPredictionErr(pixel, prevPixel, "BL", matrix);
 					}
 				}
 				else if(s.equals("-1;1")){ //spostamento verso Sud-Ovest
-					e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix);
+					e = calcPredictionErr(pixel, prevPixel, "UR", matrix);
 				}
 				else if(s.equals("1;1")){ //spostamento verso Sud-Est
-					e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix);
+					e = calcPredictionErr(pixel, prevPixel, "UL", matrix);
 				}
 				else if(s.equals("1;-1")){ //spostamento verso Nord-Est
-					e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix);
+					e = calcPredictionErr(pixel, prevPixel, "BL", matrix);
 				}
 				else if(s.equals("-1;-1")){ //spostamento verso Nord-Ovest
-					e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix);
+					e = calcPredictionErr(pixel, prevPixel, "BR", matrix);
 				}
 				
 				L.add(e);
@@ -227,9 +235,8 @@ public class seeBPMImage {
 			sum += Math.abs(e);
 		}
 		
-		beo.E = sum;
-		beo.L = L;
-
+		
+		BlockErrorOutput beo = new BlockErrorOutput(sum, L);
 		return beo;
 	}
 	
