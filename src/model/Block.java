@@ -29,4 +29,31 @@ public class Block {
 	public int getyEnd() {
 		return yEnd;
 	}
+	
+	public int length(){
+		return xEnd - xStart + 1;
+	}
+
+	public Block() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public void setxStart(int xStart) {
+		this.xStart = xStart;
+	}
+
+	public void setxEnd(int xEnd) {
+		this.xEnd = xEnd;
+	}
+
+	public void setyStart(int yStart) {
+		this.yStart = yStart;
+	}
+
+	public void setyEnd(int yEnd) {
+		this.yEnd = yEnd;
+	}
+	
+	
 }
