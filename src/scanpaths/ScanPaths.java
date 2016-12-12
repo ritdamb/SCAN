@@ -31,7 +31,7 @@ public class ScanPaths {
 			return C0(matrix,b);
 		
 		
-		//controllare che kt è uno scanpath implementato
+		//controllare che kt ï¿½ uno scanpath implementato
 
 		ArrayList<Pixel> scan4 = populate(scanMap.get(kt));
 		ArrayList<Pixel> scan= new ArrayList<Pixel>();
@@ -95,6 +95,83 @@ public class ScanPaths {
 		
 		return new Path(ConstantsScan.NORTH_EAST, path);
 	}
+	
+	private Path C1(int matrix[][], Block b){
+		
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		for(int i = xStart; i <= xEnd; i++){
+			if(i%2 == 0){
+				for(int j = yStart; j <= yEnd; j++){
+					path.add(new Pixel(i, j));
+				}
+			}
+			else{
+				for(int j = yEnd; j >= yStart; j--){
+					path.add(new Pixel(i, j));
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.NORTH_WEST, path);
+	}
+	
+	
+	private Path C2(int matrix[][], Block b){
+		
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		for(int i = yEnd; i >= yStart; i--){
+			if(i%2 == 0){
+				for(int j = xStart; j <= xEnd; j++){
+					path.add(new Pixel(j, i));
+				}
+			}
+			else{
+				for(int j = xEnd; j >= xStart; j--){
+					path.add(new Pixel(j, i));
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.SOUTH_WEST, path);
+	}
+	
+	private Path C3(int matrix[][], Block b){
+		
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		for(int i = xEnd; i >= xStart; i--){
+			if(i%2 == 0){
+				for(int j = yEnd; j >= yStart; j--){
+					path.add(new Pixel(j, i));
+				}
+			}
+			else{
+				for(int j = yStart; j <= yEnd; j++){
+					path.add(new Pixel(i, j));
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.SOUTH_WEST, path);
+	}
+	
 
 	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4){
 		
