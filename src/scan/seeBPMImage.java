@@ -31,6 +31,7 @@ public class seeBPMImage {
 			}
 		}
 
+		
 		ArrayList<Block> blocks = getBlocks(matrix, 32);
 		Pixel lastPixel = null;
 		for(int i=0; i<blocks.size();i++){
@@ -38,7 +39,6 @@ public class seeBPMImage {
 			BestPathOutput bpo = BestPath(matrix, blocks.get(i), lastPixel);
 			lastPixel = bpo.getLastPixel();
 		}
-
 
 		//ScanPaths s = new ScanPaths();
 		//Path pathC0 = s.C0(array2D, blocks.get(0));
