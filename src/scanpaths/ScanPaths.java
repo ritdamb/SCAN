@@ -14,6 +14,7 @@ public class ScanPaths {
 
 	
 	private HashMap<String,String> scanMap;
+	private static int dim=8;
 	public ScanPaths() {
 		
 		scanMap = new HashMap<String,String>();
@@ -25,20 +26,20 @@ public class ScanPaths {
 	}
 	
 	public Path scanPath(int matrix[][], Block b,String kt){
-	
+		
 		if(kt.equalsIgnoreCase("C0"))
 			return C0(matrix,b);
 		
 		
-		//controllare che kt è uno scanpath implementato
+		//controllare che kt ï¿½ uno scanpath implementato
 
 		ArrayList<Pixel> scan4 = populate(scanMap.get(kt));
 		ArrayList<Pixel> scan= new ArrayList<Pixel>();
 		Method method;
 		
 		try {
-			method = getClass().getDeclaredMethod("extends"+kt, ArrayList.class, int.class);
-			scan = (ArrayList<Pixel>) method.invoke(this,scan4,b.length());
+			method = getClass().getDeclaredMethod("extends"+kt, ArrayList.class);
+			method.invoke(scan,scan4);
 			
 		} catch (NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -94,14 +95,91 @@ public class ScanPaths {
 		
 		return new Path(ConstantsScan.NORTH_EAST, path);
 	}
+	
+	private Path C1(int matrix[][], Block b){
+		
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		for(int i = xStart; i <= xEnd; i++){
+			if(i%2 == 0){
+				for(int j = yStart; j <= yEnd; j++){
+					path.add(new Pixel(i, j));
+				}
+			}
+			else{
+				for(int j = yEnd; j >= yStart; j--){
+					path.add(new Pixel(i, j));
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.NORTH_WEST, path);
+	}
+	
+	
+	private Path C2(int matrix[][], Block b){
+		
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		for(int i = yEnd; i >= yStart; i--){
+			if(i%2 == 0){
+				for(int j = xStart; j <= xEnd; j++){
+					path.add(new Pixel(j, i));
+				}
+			}
+			else{
+				for(int j = xEnd; j >= xStart; j--){
+					path.add(new Pixel(j, i));
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.SOUTH_WEST, path);
+	}
+	
+	private Path C3(int matrix[][], Block b){
+		
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		for(int i = xEnd; i >= xStart; i--){
+			if(i%2 == 0){
+				for(int j = yEnd; j >= yStart; j--){
+					path.add(new Pixel(j, i));
+				}
+			}
+			else{
+				for(int j = yStart; j <= yEnd; j++){
+					path.add(new Pixel(i, j));
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.SOUTH_WEST, path);
+	}
+	
 
-	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4,int dim){
+	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4){
 		
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
 		
 		for (Pixel p : scan4) {
-			scan.add(new Pixel(p.getX()+(dim-4),p.getY()+(dim-4)));
+			scan.add(new Pixel(p.getX()+4,p.getY()+4));
 		}
 		
 		int i=scan4.size()-1;
@@ -146,13 +224,13 @@ public class ScanPaths {
 		return scan;
 }
 	
-	private static ArrayList<Pixel> extendsO2(ArrayList<Pixel> scan4,int dim){
+	private static ArrayList<Pixel> extendsO2(ArrayList<Pixel> scan4){
 		
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
 		
 		for (Pixel p : scan4) {
-			scan.add(new Pixel(p.getX()+(dim-4),p.getY()));
+			scan.add(new Pixel(p.getX()+4,p.getY()));
 		}
 		
 		int i=scan4.size()-1;
@@ -197,7 +275,7 @@ public class ScanPaths {
 		return scan;
 }
 	
-	private static ArrayList<Pixel> extendsO1(ArrayList<Pixel> scan4,int dim){
+	private static ArrayList<Pixel> extendsO1(ArrayList<Pixel> scan4){
 		
 				ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
@@ -248,12 +326,13 @@ public class ScanPaths {
 				return scan;
 	}
 	
-	private static ArrayList<Pixel> extendsO0(ArrayList<Pixel> scan4,int dim){
+	private static ArrayList<Pixel> extendsO0(ArrayList<Pixel> scan4){
 		
 				ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
+				
 				for (Pixel p : scan4) {
-					scan.add(new Pixel(p.getX(),p.getY()+(dim-4)));
+					scan.add(new Pixel(p.getX(),p.getY()+4));
 				}
 				
 				int i=scan4.size()-1;
@@ -323,7 +402,6 @@ public class ScanPaths {
 		//non controllo che parto da noth-east poi va inserito
 		//int pixel = matrix[xStart][yStart];
 		//System.out.println("["+ xStart+"]["+yStart +"]:" + pixel);
-		path.add(new Pixel(yStart,xStart));
 		x1=p.getX();
 		y1=p.getY();
 		posx=xStart;
@@ -338,7 +416,7 @@ public class ScanPaths {
 			int y=posy+(x2-x1);
 			
 			
-			path.add(new Pixel(y,x));
+			path.add(new Pixel(x,y));
 			//System.out.println("["+x+"]["+y+"]:" + matrix[x][y]);
 			
 			posx=x;
