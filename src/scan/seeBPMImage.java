@@ -102,9 +102,9 @@ public class seeBPMImage {
 
 		ScanPaths s = new ScanPaths();
 
-		String KT = "C0";
+		String KT = "O0";
 
-		Path path = s.scanPath(matrix, block, "C0");
+		Path path = s.scanPath(matrix, block, KT);
 		BlockErrorOutput beo = BlockError(matrix, path, prevLastPixel);
 		//QUI BISOGNA PROVARE TUTTI GLI ALTRI E SALVARSI IL MINORE
 

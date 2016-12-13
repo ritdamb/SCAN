@@ -14,7 +14,7 @@ public class ScanPaths {
 
 	
 	private HashMap<String,String> scanMap;
-	private static int dim=8;
+
 	public ScanPaths() {
 		
 		scanMap = new HashMap<String,String>();
@@ -30,7 +30,7 @@ public class ScanPaths {
 		if(kt.equalsIgnoreCase("C0"))
 			return C0(matrix,b);
 		
-		
+		int dim= b.length();
 		//controllare che kt � uno scanpath implementato
 
 		ArrayList<Pixel> scan4 = populate(scanMap.get(kt));
@@ -38,8 +38,8 @@ public class ScanPaths {
 		Method method;
 		
 		try {
-			method = getClass().getDeclaredMethod("extends"+kt, ArrayList.class);
-			method.invoke(scan,scan4);
+			method = getClass().getDeclaredMethod("extends"+kt, ArrayList.class, int.class);
+			scan = (ArrayList<Pixel>) method.invoke(this,scan4,dim);
 			
 		} catch (NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -173,13 +173,13 @@ public class ScanPaths {
 	}
 	
 
-	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4){
+	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4, int dim){
 		
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
 		
 		for (Pixel p : scan4) {
-			scan.add(new Pixel(p.getX()+4,p.getY()+4));
+			scan.add(new Pixel(p.getX()+(dim-4),p.getY()+(dim-4)));
 		}
 		
 		int i=scan4.size()-1;
@@ -224,13 +224,13 @@ public class ScanPaths {
 		return scan;
 }
 	
-	private static ArrayList<Pixel> extendsO2(ArrayList<Pixel> scan4){
+	private static ArrayList<Pixel> extendsO2(ArrayList<Pixel> scan4,int dim){
 		
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
 		
 		for (Pixel p : scan4) {
-			scan.add(new Pixel(p.getX()+4,p.getY()));
+			scan.add(new Pixel(p.getX()+(dim-4),p.getY()));
 		}
 		
 		int i=scan4.size()-1;
@@ -275,7 +275,7 @@ public class ScanPaths {
 		return scan;
 }
 	
-	private static ArrayList<Pixel> extendsO1(ArrayList<Pixel> scan4){
+	private static ArrayList<Pixel> extendsO1(ArrayList<Pixel> scan4, int dim){
 		
 				ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
@@ -326,13 +326,13 @@ public class ScanPaths {
 				return scan;
 	}
 	
-	private static ArrayList<Pixel> extendsO0(ArrayList<Pixel> scan4){
+	private static ArrayList<Pixel> extendsO0(ArrayList<Pixel> scan4, int dim){
 		
 				ArrayList<Pixel> scan = new ArrayList<Pixel>();
 
 				
 				for (Pixel p : scan4) {
-					scan.add(new Pixel(p.getX(),p.getY()+4));
+					scan.add(new Pixel(p.getX(),p.getY()+(dim-4)));
 				}
 				
 				int i=scan4.size()-1;
@@ -402,10 +402,13 @@ public class ScanPaths {
 		//non controllo che parto da noth-east poi va inserito
 		//int pixel = matrix[xStart][yStart];
 		//System.out.println("["+ xStart+"]["+yStart +"]:" + pixel);
+		path.add(new Pixel(yStart,xStart));
+
 		x1=p.getX();
 		y1=p.getY();
 		posx=xStart;
 		posy=yStart;
+
 		
 		for(i=1; i < scan8.size(); i++){
 			p = scan8.get(i);
@@ -416,7 +419,7 @@ public class ScanPaths {
 			int y=posy+(x2-x1);
 			
 			
-			path.add(new Pixel(x,y));
+			path.add(new Pixel(y,x));
 			//System.out.println("["+x+"]["+y+"]:" + matrix[x][y]);
 			
 			posx=x;
