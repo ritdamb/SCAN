@@ -29,6 +29,12 @@ public class ScanPaths {
 		
 		if(kt.equalsIgnoreCase("C0"))
 			return C0(matrix,b);
+		else if(kt.equalsIgnoreCase("C1"))
+			return C1(matrix,b);
+		else if(kt.equalsIgnoreCase("C2"))
+			return C2(matrix,b);
+		else if(kt.equalsIgnoreCase("C3"))
+			return C3(matrix,b);
 		
 		int dim= b.length();
 		//controllare che kt � uno scanpath implementato
@@ -82,13 +88,13 @@ public class ScanPaths {
 			if(i%2 == 0){
 				for(int j = xEnd; j >= xStart; j--){
 					//System.out.println("Pixel ["+j+"]"+"["+i+"]:"+" "+matrix[j][i]);
-					path.add(new Pixel(j, i));
+					path.add(new Pixel(i, j));
 				}
 			}
 			else{
 				for(int j = xStart; j <= xEnd; j++){
 					//System.out.println("Pixel ["+j+"]"+"["+i+"]:"+" "+matrix[j][i]);
-					path.add(new Pixel(j, i));
+					path.add(new Pixel(i, j));
 				}
 			}
 		}
@@ -108,12 +114,12 @@ public class ScanPaths {
 		for(int i = xStart; i <= xEnd; i++){
 			if(i%2 == 0){
 				for(int j = yStart; j <= yEnd; j++){
-					path.add(new Pixel(i, j));
+					path.add(new Pixel(j, i));
 				}
 			}
 			else{
 				for(int j = yEnd; j >= yStart; j--){
-					path.add(new Pixel(i, j));
+					path.add(new Pixel(j, i));
 				}
 			}
 		}
@@ -134,12 +140,12 @@ public class ScanPaths {
 		for(int i = yEnd; i >= yStart; i--){
 			if(i%2 == 0){
 				for(int j = xStart; j <= xEnd; j++){
-					path.add(new Pixel(j, i));
+					path.add(new Pixel(i, j));
 				}
 			}
 			else{
 				for(int j = xEnd; j >= xStart; j--){
-					path.add(new Pixel(j, i));
+					path.add(new Pixel(i, j));
 				}
 			}
 		}
@@ -164,7 +170,7 @@ public class ScanPaths {
 			}
 			else{
 				for(int j = yStart; j <= yEnd; j++){
-					path.add(new Pixel(i, j));
+					path.add(new Pixel(j, i));
 				}
 			}
 		}
