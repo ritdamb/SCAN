@@ -80,24 +80,24 @@ public class ScanPaths {
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
-		
+		System.out.println("----- PATH C0 Start ---");
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		
-		for(int i = yStart; i <= yEnd; i++){
-			if(i%2 == 0){
-				for(int j = xEnd; j >= xStart; j--){
-					//System.out.println("Pixel ["+j+"]"+"["+i+"]:"+" "+matrix[j][i]);
-					path.add(new Pixel(i, j));
+		for(int x = xStart; x <= xEnd; x++){
+			if(x%2 == 0){
+				for(int y = yEnd; y >= yStart; y--){
+					System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
+					path.add(new Pixel(x, y));
 				}
 			}
 			else{
-				for(int j = xStart; j <= xEnd; j++){
-					//System.out.println("Pixel ["+j+"]"+"["+i+"]:"+" "+matrix[j][i]);
-					path.add(new Pixel(i, j));
+				for(int y = yStart; y <= yEnd; y++){
+					System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
+					path.add(new Pixel(x, y));
 				}
 			}
 		}
+		System.out.println("----- PATH C0 End ---");
 		
 		return new Path(ConstantsScan.NORTH_EAST, path);
 	}
@@ -111,15 +111,15 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		for(int i = xStart; i <= xEnd; i++){
-			if(i%2 == 0){
-				for(int j = yStart; j <= yEnd; j++){
-					path.add(new Pixel(j, i));
+		for(int y = yStart; y <= yEnd; y++){
+			if(y%2 == 0){
+				for(int x = xStart; x <= xEnd; x++){
+					path.add(new Pixel(x, y));
 				}
 			}
 			else{
-				for(int j = yEnd; j >= yStart; j--){
-					path.add(new Pixel(j, i));
+				for(int x = xEnd; x >= xStart; x--){
+					path.add(new Pixel(x, y));
 				}
 			}
 		}
@@ -137,15 +137,15 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		for(int i = yEnd; i >= yStart; i--){
-			if(i%2 == 0){
-				for(int j = xStart; j <= xEnd; j++){
-					path.add(new Pixel(i, j));
+		for(int x = xEnd; x >= xStart; x--){
+			if(x%2 == 0){
+				for(int y = yStart; y <= yEnd; y++){
+					path.add(new Pixel(x, y));
 				}
 			}
 			else{
-				for(int j = xEnd; j >= xStart; j--){
-					path.add(new Pixel(i, j));
+				for(int y = yEnd; y >= yStart; y--){
+					path.add(new Pixel(x, y));
 				}
 			}
 		}
@@ -162,15 +162,15 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		for(int i = xEnd; i >= xStart; i--){
-			if(i%2 == 0){
-				for(int j = yEnd; j >= yStart; j--){
-					path.add(new Pixel(j, i));
+		for(int yi = yEnd; yi >= yStart; yi--){
+			if(yi%2 == 0){
+				for(int x = xEnd; x >= xStart; x--){
+					path.add(new Pixel(x, yi));
 				}
 			}
 			else{
-				for(int j = yStart; j <= yEnd; j++){
-					path.add(new Pixel(j, i));
+				for(int x = xStart; x <= xEnd; x++){
+					path.add(new Pixel(x, yi));
 				}
 			}
 		}

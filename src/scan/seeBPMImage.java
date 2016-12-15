@@ -35,7 +35,7 @@ public class seeBPMImage {
 		ArrayList<Block> blocks = getBlocks(matrix, ConstantsScan.blockSize);
 		Pixel lastPixel = null;
 		
-		//BestPathOutput bpo = BestPath(matrix, blocks.get(0), lastPixel);
+		BestPathOutput bpo = BestPath(matrix, blocks.get(0), lastPixel);
 		
 		/*for(int i=0; i<blocks.size();i++){
 
@@ -79,22 +79,24 @@ public class seeBPMImage {
 		for(int i=1; i <= numOfBlockPerLine; i++){
 			if(i%2 != 0){ //scorro da destra a sinistra
 				for(int j=1; j<= numOfBlockPerLine; j++){
-					int xStart = (len-1)-((N*j)-1);
-					int xEnd = (len-1)-(N*(j-1));
-					int yStart = (N*(i-1));
-					int yEnd = (N*i)-1;
-
+					int xStart = (N*(i-1));
+					int xEnd = (N*i)-1;
+					int yStart = (len-1)-((N*j)-1);
+					int yEnd = (len-1)-(N*(j-1));
+					
 					blocks.add(new Block(xStart, xEnd, yStart, yEnd));
+					//System.out.println(blocks.get(blocks.size()-1));
 				}
 			}
 			else{ //else scorro da sinistra a destra
 				for(int j=numOfBlockPerLine; j>=1; j--){
-					int xStart = (len-1)-((N*j)-1);
-					int xEnd = (len-1)-(N*(j-1));
-					int yStart = (N*(i-1));
-					int yEnd = (N*i)-1;
-
+					int xStart = (N*(i-1));
+					int xEnd = (N*i)-1;
+					int yStart = (len-1)-((N*j)-1);
+					int yEnd = (len-1)-(N*(j-1));
+					
 					blocks.add(new Block(xStart, xEnd, yStart, yEnd));
+					//System.out.println(blocks.get(blocks.size()-1));
 				}
 			}
 		}
@@ -121,7 +123,7 @@ public class seeBPMImage {
 		
 		for(int i =0; i < k.length; i++){
 			for(t=0; t < ConstantsScan.maxDirectionScan; t++){
-				if(k[i]== 'C' && t == 0){ // se è la prima volta che calcolo l'errore allora è l'errore minimo
+				if(k[i]== 'C' && t == 0){ // se ï¿½ la prima volta che calcolo l'errore allora ï¿½ l'errore minimo
 					path = s.scanPath(matrix, block, ""+k[0]+t);
 					beo = BlockError(matrix, path, prevLastPixel,block);
 					minScanKT=""+k[0]+t;

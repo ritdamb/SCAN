@@ -55,5 +55,9 @@ public class Block {
 		this.yEnd = yEnd;
 	}
 	
+	public String toString(){
+		return "xStart="+xStart+" xEnd="+xEnd+" yStart="+yStart+" yEnd="+yEnd;
+	}
+	
 	
 }
