@@ -32,19 +32,24 @@ public class seeBPMImage {
 		}
 
 		
-		ArrayList<Block> blocks = getBlocks(matrix, 32);
+		ArrayList<Block> blocks = getBlocks(matrix, ConstantsScan.blockSize);
 		Pixel lastPixel = null;
 		
 		//BestPathOutput bpo = BestPath(matrix, blocks.get(0), lastPixel);
 		
-		for(int i=0; i<blocks.size();i++){
+		/*for(int i=0; i<blocks.size();i++){
 
 			BestPathOutput bpo = BestPath(matrix, blocks.get(i), lastPixel);
 			lastPixel = bpo.getLastPixel();
 			
 			System.out.println("Block "+i+" :"+ bpo.getBestPathName());
 			
-		}
+		}*/
+		
+		
+		
+		System.out.println(encode("(D2,(S0,C1,C2,O3),C3,(O2,C0,C0,D1))",64));
+		System.out.println("100110111000001001010110001111010000000000101");
 
 		//ScanPaths s = new ScanPaths();
 		//Path pathC0 = s.C0(array2D, blocks.get(0));
@@ -141,11 +146,11 @@ public class seeBPMImage {
 	
 		
 		int B = 4;
-		if(block.length() > 16)
+		if(block.length() > ConstantsScan.minimumBlockSize)
 			B = 5;
 
 
-		if(block.length() > 16){
+		if(block.length() > ConstantsScan.minimumBlockSize){
 			Block subRegions[] = splitBlock(block);
 
 			BestPathOutput bpo1 = BestPath(matrix, subRegions[0], prevLastPixel);
@@ -422,4 +427,58 @@ public class seeBPMImage {
 		return -1;
 	}
 
+	public static String encode(String scanpath, int blockSize){
+		
+		String scan = scanpath.replace(",", "");
+		if(scan.length() == 2 ){
+			String k = scan.substring(0,1);
+			String t = scan.substring(1);
+			if(blockSize > ConstantsScan.minimumBlockSize)
+				return "0"+code(k)+code(t);
+			else
+				return code(k)+code(t);
+			
+		}else{
+			String[] scans;
+			if(scanpath.contains("(") || scanpath.contains(")"))
+				scans = scanpath.split("[\\( | \\)]");
+			else
+				scans = scanpath.split(",");
+			
+			String[] p = new String[4];
+			int i=0;
+			for(String s: scans){
+				if (s.length()!=0){
+					p[i] = s;
+					i++;
+				}
+			}
+			
+			return "1"+ encode(p[0],blockSize/2)+ encode(p[1],blockSize/2)
+					+encode(p[2],blockSize/2)+encode(p[3],blockSize/2);
+		}
+	}
+	
+	private static String code(String k){
+		if(k.equals("C")){
+			return "00";
+		}else if(k.equals("D")){
+			return "01";
+		}else if(k.equals("O")){
+			return "10";
+		}else if(k.equals("S")){
+			return "11";
+		}else if(k.equals("0")){
+			return "00";
+		}else if(k.equals("1")){
+			return "01";
+		}else if(k.equals("2")){
+			return "10";
+		}else if(k.equals("3")){
+			return "11";
+		}else{
+			return null;
+		}
+	}
+	
 }
