@@ -80,24 +80,24 @@ public class ScanPaths {
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
-		System.out.println("----- PATH C0 Start ---");
+		//System.out.println("----- PATH C0 Start ---");
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		for(int x = xStart; x <= xEnd; x++){
 			if(x%2 == 0){
 				for(int y = yEnd; y >= yStart; y--){
-					System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
+					//System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
 					path.add(new Pixel(x, y));
 				}
 			}
 			else{
 				for(int y = yStart; y <= yEnd; y++){
-					System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
+					//System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
 					path.add(new Pixel(x, y));
 				}
 			}
 		}
-		System.out.println("----- PATH C0 End ---");
+		//System.out.println("----- PATH C0 End ---");
 		
 		return new Path(ConstantsScan.NORTH_EAST, path);
 	}
@@ -392,23 +392,23 @@ public class ScanPaths {
 
 		
 		if(direction.equals(ConstantsScan.NORTH_EAST)){
-			xStart=block.getxEnd();
-			yStart=block.getyStart();
+			yStart=block.getyEnd();
+			xStart=block.getxStart();
 		}else if(direction.equals(ConstantsScan.NORTH_WEST)){
-			xStart=block.getxStart();
 			yStart=block.getyStart();
-		}else if(direction.equals(ConstantsScan.SOUTH_WEST)){
 			xStart=block.getxStart();
-			yStart=block.getyEnd();
-		}else{
+		}else if(direction.equals(ConstantsScan.SOUTH_WEST)){
+			yStart=block.getyStart();
 			xStart=block.getxEnd();
+		}else{
 			yStart=block.getyEnd();
+			xStart=block.getxEnd();
 		}
 		
 		//non controllo che parto da noth-east poi va inserito
 		//int pixel = matrix[xStart][yStart];
 		//System.out.println("["+ xStart+"]["+yStart +"]:" + pixel);
-		path.add(new Pixel(yStart,xStart));
+		path.add(new Pixel(xStart,yStart));
 
 		x1=p.getX();
 		y1=p.getY();
@@ -421,11 +421,11 @@ public class ScanPaths {
 			x2=p.getX();
 			y2=p.getY();
 			
-			int x=posx +(y2-y1);
-			int y=posy+(x2-x1);
+			int x=posx +(x2-x1);
+			int y=posy+(y2-y1);
 			
 			
-			path.add(new Pixel(y,x));
+			path.add(new Pixel(x,y));
 			//System.out.println("["+x+"]["+y+"]:" + matrix[x][y]);
 			
 			posx=x;

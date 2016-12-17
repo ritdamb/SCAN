@@ -4,12 +4,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import ac.AdaptiveArithmeticCompress;
+import ac.AdaptiveArithmeticDecompress;
+
 public class WriteBit {
 
 	public static void main(String[] args){
 		
 		String header1="111";
 		String scanpath="100110111000001001010110001111010000000000101";
+		
+		
 		FileOutputStream file=null;
 		try {
 			file = new FileOutputStream("compress");

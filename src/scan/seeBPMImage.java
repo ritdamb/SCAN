@@ -1,6 +1,8 @@
 package scan;
 
 import javax.imageio.ImageIO;
+
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +14,8 @@ import scanpaths.ScanPaths;
 
 public class seeBPMImage {
 	static HashMap<String, String> scannedPixel = new HashMap<String, String>();
+	static Pixel first_pixel=null;
+	static Pixel second_pixel=null;
 
 	public static void main(String[] args) throws IOException {
 
@@ -34,22 +38,42 @@ public class seeBPMImage {
 		
 		ArrayList<Block> blocks = getBlocks(matrix, ConstantsScan.blockSize);
 		Pixel lastPixel = null;
+		ArrayList<String> scanPaths = new ArrayList<String>();
+		ArrayList<Integer> predictionsError = new ArrayList<Integer>();
 		
-		BestPathOutput bpo = BestPath(matrix, blocks.get(0), lastPixel);
-		
-		/*for(int i=0; i<blocks.size();i++){
+		//BestPathOutput bpo = BestPath(matrix, blocks.get(0), lastPixel);
+		for(int i=0; i<blocks.size();i++){
 
 			BestPathOutput bpo = BestPath(matrix, blocks.get(i), lastPixel);
+			
 			lastPixel = bpo.getLastPixel();
+			predictionsError.addAll(bpo.getL());
+			scanPaths.add(bpo.getBestPathName());
+			//System.out.println("Block "+i+" :"+ bpo.getBestPathName());
 			
-			System.out.println("Block "+i+" :"+ bpo.getBestPathName());
-			
-		}*/
+		}
+
 		
+		ArrayList<Integer> contexts = context(matrix,blocks, scanPaths);
 		
+		for(Integer ii : contexts) System.out.println(ii);
 		
-		System.out.println(encode("(D2,(S0,C1,C2,O3),C3,(O2,C0,C0,D1))",64));
-		System.out.println("100110111000001001010110001111010000000000101");
+		/*
+		int[] listOfContexts = new int[]{1,0,3,4,1,3,4,3,0,0,0,0};
+		
+		//arithmetic coding
+		FlatFrequencyTable initFreqs = new FlatFrequencyTable(257);
+		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
+		ArithmeticEncoder enc = new ArithmeticEncoder(new BitOutputStream(new FileOutputStream("compress")));
+		for(Integer symbol: listOfContexts ) {
+			enc.write(freqs, symbol.byteValue());
+			freqs.increment(symbol);
+		}
+		enc.write(freqs, 256);  // EOF
+		enc.finish();  // Flush remaining code bits
+		*/
+		//System.out.println(encode("(D2,(S0,C1,C2,O3),C3,(O2,C0,C0,D1))",64));
+		//System.out.println("100110111000001001010110001111010000000000101");
 
 		//ScanPaths s = new ScanPaths();
 		//Path pathC0 = s.C0(array2D, blocks.get(0));
@@ -209,7 +233,302 @@ public class seeBPMImage {
 
 		return subRegions;
 	}
+	
+	public static ArrayList<Integer> context(int matrix[][],ArrayList<Block> blocks, ArrayList<String> scanPaths){
+		
+		ArrayList<Integer> contexts = new ArrayList<Integer>();
+		ScanPaths s = new  ScanPaths();
+		Path path;
+		scannedPixel = new HashMap<String,String>();
+		for(int i =0; i < blocks.size(); i++){
+			
+			String scan = scanPaths.get(i);
+			if(scan.contains("(") || scan.contains(")")){
+				String[] scans= scan.split("[\\( | \\) | , ]");
+				String[] p = new String[4];
+				int j=0;
+				for(String sc: scans){
+					if (sc.length()!=0){
+						p[j] = sc;
+						j++;
+					}
+				}
+				
+				for(String sp : p){
+					path = s.scanPath(matrix, blocks.get(i), sp);
+					contexts.addAll(getContext(matrix,path,blocks.get(i)));
+				}
+			}else{
+				path = s.scanPath(matrix, blocks.get(i), scan);
+				contexts.addAll(getContext(matrix,path,blocks.get(i)));
+			}
+		}
+		
+		
+		
+		
+		return contexts;
+		
+	}
+	
+	public static int calcContext(Pixel actualPixel,String predictor,int[][] matrix,Block block){
+		boolean use_uv_Pixel = false;
 
+		if(predictor == "UR"){ //N,E,NE
+			if((actualPixel.x - 1) >= block.getxStart()  && (actualPixel.y + 1) <= block.getyEnd()){ //vedo se il pixel a Nord e ad Est non escono fuori dal blocco
+				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
+				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
+				Pixel s = new Pixel(actualPixel.x-1, actualPixel.y+1);
+				//vedo se i pixel q ed r sono stati gi� scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)
+						&& scannedPixel.containsKey(s.x+"-"+s.y)){
+					int sVal = matrix[s.x][s.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int a = (Math.abs(qVal-rVal)+Math.abs(rVal-sVal))/2;
+					return a;
+				}
+				else
+					use_uv_Pixel = true;
+			}
+			else
+				use_uv_Pixel = true;
+		}
+		else if(predictor == "UL"){//N,NW,W
+			if((actualPixel.y - 1) >= block.getyStart()  && (actualPixel.x - 1) >= block.getxStart()){ //vedo se il pixel a Nord e ad Ovest non escono fuori dal blocco
+				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
+				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
+				Pixel s = new Pixel(actualPixel.x-1, actualPixel.y-1);
+				//vedo se i pixel q ed r sono stati gi� scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)
+						&& scannedPixel.containsKey(s.x+"-"+s.y)){
+					int sVal = matrix[s.x][s.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int a = (Math.abs(qVal-rVal)+Math.abs(rVal-sVal))/2;
+					return a;
+				}
+				else
+					use_uv_Pixel = true;
+			}
+			else
+				use_uv_Pixel = true;
+
+		}
+		else if(predictor == "BL"){//S,SW,W
+			if((actualPixel.y -1) >= block.getyStart()  && (actualPixel.x + 1) <= block.getxEnd()){ //vedo se il pixel a Sud e ad Ovest non escono fuori dal blocco
+				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
+				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
+				Pixel s = new Pixel(actualPixel.x+1, actualPixel.y-1);
+				//vedo se i pixel q ed r sono stati gi� scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)
+						&& scannedPixel.containsKey(s.x+"-"+s.y)){
+					int sVal = matrix[s.x][s.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int a = (Math.abs(qVal-rVal)+Math.abs(rVal-sVal))/2;
+					return a;
+				}
+				else
+					use_uv_Pixel = true;
+			}
+			else
+				use_uv_Pixel = true;
+		}
+		else if(predictor == "BR"){//S,SE,E
+			if((actualPixel.y + 1) <= block.getyEnd()  && (actualPixel.x + 1) <= block.getxEnd()){ //vedo se il pixel a Sud e ad Est non escono fuori dalla matrice
+				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
+				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
+				Pixel s = new Pixel(actualPixel.x+1, actualPixel.y+1);
+				//vedo se i pixel q ed r sono stati gi� scansionati
+				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)
+						&& scannedPixel.containsKey(s.x+"-"+s.y)){
+					int sVal = matrix[s.x][s.y];
+					int qVal = matrix[q.x][q.y];
+					int rVal = matrix[r.x][r.y];
+					int a = (Math.abs(qVal-rVal)+Math.abs(rVal-sVal))/2;
+					return a;
+				}
+				else
+					use_uv_Pixel = true;
+			}
+			else
+				use_uv_Pixel = true;
+		}
+
+		if (use_uv_Pixel){
+			int uVal = matrix[first_pixel.x][first_pixel.y];
+			int vVal = matrix[second_pixel.x][second_pixel.y];
+			int e = Math.abs(uVal - vVal);
+			return e;
+		}
+
+		return -1;
+		
+	}
+	
+	public static ArrayList<Integer> getContext(int matrix[][], Path path, Block block){
+
+		Pixel pixel,prevPixel = null;
+		String lastPredictorUsed = null;
+
+		ArrayList<Integer> L = new ArrayList<Integer>(); //Sequence L of prediction errors along P
+
+		for(int i=0; i < path.size(); i++){
+			pixel=path.getPixel(i);
+			//vado a vedere se � il primo pixel del primo blocco scansionato dell'immagine
+			if(first_pixel == null || second_pixel==null){
+				L.add(0);
+				scannedPixel.put(pixel.x+"-"+pixel.y, null);
+				if(path.startAngle.equals(ConstantsScan.NORTH_EAST))
+					lastPredictorUsed="UR";
+				else if(path.startAngle.equals(ConstantsScan.NORTH_WEST))
+					lastPredictorUsed="UL";
+				else if(path.startAngle.equals(ConstantsScan.SOUTH_WEST))
+					lastPredictorUsed="BL";
+				else if(path.startAngle.equals(ConstantsScan.SOUTH_EAST))
+					lastPredictorUsed="BR";
+				
+				if(first_pixel == null)
+					first_pixel = pixel;
+				else
+					second_pixel= pixel;
+				
+				prevPixel=pixel;
+				
+				continue;
+			}
+			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) 
+				//al primo pixel? Vedo l'angolo di partenza
+				String startAngle = path.getStartAngle();
+				if(startAngle.equals(ConstantsScan.NORTH_EAST)){//UR {N,E}
+					int e = calcContext(pixel, "UR", matrix,block);
+					if(e>=0 && e<=2) 
+						L.add(0);
+					else if(e>=3 && e<=8)
+						L.add(1);
+					else if(e>=9 && e<=15)
+						L.add(2);
+					else
+						L.add(3);					
+					lastPredictorUsed = "UR";
+				}
+
+				else if(startAngle.equals(ConstantsScan.NORTH_WEST)){//UL {N,W}
+					int e = calcContext(pixel, "UL", matrix,block);
+					if(e>=0 && e<=2) 
+						L.add(0);
+					else if(e>=3 && e<=8)
+						L.add(1);
+					else if(e>=9 && e<=15)
+						L.add(2);
+					else
+						L.add(3);
+					lastPredictorUsed = "UL";
+				}
+
+				else if(startAngle.equals(ConstantsScan.SOUTH_WEST)){//BL {S,W}
+					int e = calcContext(pixel,"BL", matrix,block);
+					if(e>=0 && e<=2) 
+						L.add(0);
+					else if(e>=3 && e<=8)
+						L.add(1);
+					else if(e>=9 && e<=15)
+						L.add(2);
+					else
+						L.add(3);
+					lastPredictorUsed = "BL";
+				}
+				else if(startAngle.equals(ConstantsScan.SOUTH_EAST)){//BR {S,E}
+					int e = calcContext(pixel,"BR", matrix,block);
+					if(e>=0 && e<=2) 
+						L.add(0);
+					else if(e>=3 && e<=8)
+						L.add(1);
+					else if(e>=9 && e<=15)
+						L.add(2);
+					else
+						L.add(3);
+					lastPredictorUsed = "BR";
+				}
+
+				scannedPixel.put(pixel.x+"-"+pixel.y, null);
+				prevPixel=pixel;
+
+			}
+			else { //qui entro se non sono nel primo pixel del path
+				//La prima cosa da fare � determinare il movimento
+
+				int Xmove = pixel.x - prevPixel.x;
+				int Ymove = pixel.y - prevPixel.y;
+
+				String s = Xmove+";"+Ymove;
+				int e = 0;
+
+				if(s.equals("0;-1")){ //spostamento verso Ovest <-
+
+					if(lastPredictorUsed.startsWith("U")){
+						e = calcContext(pixel, "UR", matrix, block);
+					}
+					else{
+						e = calcContext(pixel, "BR", matrix, block);
+					}
+				}
+				else if(s.equals("1;0")){ //spostamento verso Sud
+					if(lastPredictorUsed.endsWith("R")){
+						e = calcContext(pixel, "UR", matrix, block);
+					}
+					else{
+						e = calcContext(pixel, "UL", matrix, block);
+					}
+				}
+				else if(s.equals("0;1")){ //spostamento verso Est ->
+					if(lastPredictorUsed.startsWith("U")){
+						e = calcContext(pixel, "UL", matrix, block);
+					}
+					else{
+						e = calcContext(pixel, "BL", matrix, block);
+					}
+				}
+				else if(s.equals("-1;0")){ //spostamento verso Nord
+					if(lastPredictorUsed.endsWith("R")){
+						e = calcContext(pixel, "BR", matrix, block);
+					}
+					else{
+						e = calcContext(pixel, "BL", matrix, block);
+					}
+				}
+				else if(s.equals("1;-1")){ //spostamento verso Sud-Ovest
+					e = calcContext(pixel, "UR", matrix, block);
+				}
+				else if(s.equals("1;1")){ //spostamento verso Sud-Est
+					e = calcContext(pixel, "UL", matrix, block);
+				}
+				else if(s.equals("-1;1")){ //spostamento verso Nord-Est
+					e = calcContext(pixel, "BL", matrix, block);
+				}
+				else if(s.equals("-1;-1")){ //spostamento verso Nord-Ovest
+					e = calcContext(pixel, "BR", matrix, block);
+				}
+
+				if(e>=0 && e<=2) 
+					L.add(0);
+				else if(e>=3 && e<=8)
+					L.add(1);
+				else if(e>=9 && e<=15)
+					L.add(2);
+				else
+					L.add(3);
+
+				scannedPixel.put(pixel.x+"-"+pixel.y, null);
+				prevPixel = pixel;
+
+			}	
+
+		}
+
+		return L;
+	}
 
 
 	public static BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel, Block block){
@@ -264,6 +583,7 @@ public class seeBPMImage {
 					lastPredictorUsed = "BR";
 				}
 
+				scannedPixel.put(pixel.x+"-"+pixel.y, null);
 				prevPixel=pixel;
 
 			}
@@ -324,6 +644,7 @@ public class seeBPMImage {
 
 				L.add(e);
 
+				scannedPixel.put(pixel.x+"-"+pixel.y, null);
 				prevPixel = pixel;
 
 			}	
@@ -346,7 +667,7 @@ public class seeBPMImage {
 		boolean use_s_Pixel = false;
 
 		if(predictor == "UR"){
-			if((actualPixel.x - 1) >= block.getyStart()  && (actualPixel.y + 1) <= block.getxEnd()){ //vedo se il pixel a Nord e ad Est non escono fuori dal blocco
+			if((actualPixel.x - 1) >= block.getxStart()  && (actualPixel.y + 1) <= block.getyEnd()){ //vedo se il pixel a Nord e ad Est non escono fuori dal blocco
 				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -364,7 +685,7 @@ public class seeBPMImage {
 				use_s_Pixel = true;
 		}
 		else if(predictor == "UL"){
-			if((actualPixel.y - 1) >= block.getxStart()  && (actualPixel.x - 1) >= block.getyStart()){ //vedo se il pixel a Nord e ad Ovest non escono fuori dal blocco
+			if((actualPixel.y - 1) >= block.getyStart()  && (actualPixel.x - 1) >= block.getxStart()){ //vedo se il pixel a Nord e ad Ovest non escono fuori dal blocco
 				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -383,7 +704,7 @@ public class seeBPMImage {
 
 		}
 		else if(predictor == "BL"){
-			if((actualPixel.y -1) >= block.getxStart()  && (actualPixel.x + 1) <= block.getyEnd()){ //vedo se il pixel a Sud e ad Ovest non escono fuori dal blocco
+			if((actualPixel.y -1) >= block.getyStart()  && (actualPixel.x + 1) <= block.getxEnd()){ //vedo se il pixel a Sud e ad Ovest non escono fuori dal blocco
 				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -401,7 +722,7 @@ public class seeBPMImage {
 				use_s_Pixel = true;
 		}
 		else if(predictor == "BR"){
-			if((actualPixel.y + 1) <= block.getxEnd()  && (actualPixel.x + 1) <= block.getyEnd()){ //vedo se il pixel a Sud e ad Est non escono fuori dalla matrice
+			if((actualPixel.y + 1) <= block.getyEnd()  && (actualPixel.x + 1) <= block.getxEnd()){ //vedo se il pixel a Sud e ad Est non escono fuori dalla matrice
 				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -422,7 +743,7 @@ public class seeBPMImage {
 		if (use_s_Pixel){
 			int pVal = matrix[actualPixel.x][actualPixel.y];
 			int sVal = matrix[prevPixel.x][prevPixel.y];
-			int e = pVal - sVal;
+			int e = Math.abs(pVal - sVal);
 			return e;
 		}
 
@@ -443,7 +764,7 @@ public class seeBPMImage {
 		}else{
 			String[] scans;
 			if(scanpath.contains("(") || scanpath.contains(")"))
-				scans = scanpath.split("[\\( | \\)]");
+				scans = scanpath.split("[\\( | \\) | ,]");
 			else
 				scans = scanpath.split(",");
 			
@@ -482,5 +803,6 @@ public class seeBPMImage {
 			return null;
 		}
 	}
+	
 	
 }
