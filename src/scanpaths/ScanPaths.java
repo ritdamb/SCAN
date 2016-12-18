@@ -2,6 +2,9 @@ package scanpaths;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -35,6 +38,14 @@ public class ScanPaths {
 			return C2(matrix,b);
 		else if(kt.equalsIgnoreCase("C3"))
 			return C3(matrix,b);
+		else if(kt.equalsIgnoreCase("D0"))
+			return D0(matrix,b);
+		else if(kt.equalsIgnoreCase("D1"))
+			return D1(matrix,b);
+		else if(kt.equalsIgnoreCase("D2"))
+			return D2(matrix,b);
+		else if(kt.equalsIgnoreCase("D3"))
+			return D3(matrix,b);
 		
 		int dim= b.length();
 		//controllare che kt � uno scanpath implementato
@@ -177,6 +188,200 @@ public class ScanPaths {
 		
 		return new Path(ConstantsScan.SOUTH_WEST, path);
 	}
+	
+	public Path D0 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		Pixel p = new Pixel(xStart, yEnd);
+		path.add(p);
+		p = p.transform(0, -1);
+		path.add(p);
+		
+		boolean fall = true;
+		while( !(p.x == xEnd && p.y == yStart) ){
+			if(fall){
+				p = p.transform(1, 1);
+				path.add(p);
+				if(p.x == xEnd){
+					p = p.transform(0, -1);
+					path.add(p);
+					fall = false;
+				}
+				else if(p.y == yEnd){
+					p = p.transform(1, 0);
+					path.add(p);
+					fall = false;
+				}
+			}
+			else{
+				p = p.transform(-1, -1);
+				path.add(p);
+				if(p.y == yStart){
+					p = p.transform(1, 0);
+					path.add(p);
+					fall = true;
+				}
+				else if(p.x == xStart){
+					p = p.transform(0, -1);
+					path.add(p);
+					fall = true;
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.NORTH_EAST, path);
+	}
+	
+	public Path D1 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		Pixel p = new Pixel(xStart, yStart);
+		path.add(p);
+		p = p.transform(1, 0);
+		path.add(p);
+		
+		boolean fall = false;
+		while( !(p.x == xEnd && p.y == yEnd) ){
+			if(fall){
+				p = p.transform(1, -1);
+				path.add(p);
+				if(p.x == xEnd){
+					p = p.transform(0, 1);
+					path.add(p);
+					fall = false;
+				}
+				else if(p.y == yStart){
+					p = p.transform(1, 0);
+					path.add(p);
+					fall = false;
+				}
+			}
+			else{
+				p = p.transform(-1, 1);
+				path.add(p);
+				if(p.y == yEnd){
+					p = p.transform(1, 0);
+					path.add(p);
+					fall = true;
+				}
+				else if(p.x == xStart){
+					p = p.transform(0, 1);
+					path.add(p);
+					fall = true;
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.NORTH_WEST, path);
+	}
+	
+	
+	public Path D2 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		Pixel p = new Pixel(xEnd, yStart);
+		path.add(p);
+		p = p.transform(-1, 0);
+		path.add(p);
+		
+		boolean fall = true;
+		while( !(p.x == xStart && p.y == yEnd) ){
+			if(fall){
+				p = p.transform(1, 1);
+				path.add(p);
+				if(p.y == yEnd){
+					p = p.transform(-1, 0);
+					path.add(p);
+					fall = false;
+				}
+				else if(p.x == xEnd){
+					p = p.transform(0, 1);
+					path.add(p);
+					fall = false;
+				}
+			}
+			else{
+				p = p.transform(-1, -1);
+				path.add(p);
+				if(p.x == xStart){
+					p = p.transform(0, 1);
+					path.add(p);
+					fall = true;
+				}
+				else if(p.y == yStart){
+					p = p.transform(-1, 0);
+					path.add(p);
+					fall = true;
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.SOUTH_WEST, path);
+	}
+	
+	public Path D3 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		Pixel p = new Pixel(xEnd, yEnd);
+		path.add(p);
+		p = p.transform(0, -1);
+		path.add(p);
+		
+		boolean fall = false;
+		while( !(p.x == xStart && p.y == yStart) ){
+			if(fall){
+				p = p.transform(1, -1);
+				path.add(p);
+				if(p.y == yStart){
+					p = p.transform(-1, 0);
+					path.add(p);
+					fall = false;
+				}
+				else if(p.x == xEnd){
+					p = p.transform(0, -1);
+					path.add(p);
+					fall = false;
+				}
+			}
+			else{
+				p = p.transform(-1, 1);
+				path.add(p);
+				if(p.x == xStart){
+					p = p.transform(0, -1);
+					path.add(p);
+					fall = true;
+				}
+				else if(p.y == yEnd){
+					p = p.transform(-1, 0);
+					path.add(p);
+					fall = true;
+				}
+			}
+		}
+		
+		return new Path(ConstantsScan.SOUTH_EAST, path);
+	}
+	
 	
 
 	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4, int dim){

@@ -12,5 +12,8 @@ public class Pixel{
 	
 	public String toString(){ return "("+this.x+","+this.y+")"; }
 
+	public Pixel transform (int a, int b){ //aggiunge a e b a pixel.x e pixel.y
+		return new Pixel(this.x + a, this.y + b);
+	}
 
 }
