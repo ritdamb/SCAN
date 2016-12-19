@@ -9,7 +9,7 @@ public class testScanPath {
 		// TODO Auto-generated method stub
 		int matrix[][] = null;
 		ScanPaths s = new ScanPaths();
-		s.scanPath(matrix, new Block(0, 3, 0, 3), "D3");
+		s.scanPath(matrix, new Block(0, 3, 0, 3), "S3");
 	}
 
 }

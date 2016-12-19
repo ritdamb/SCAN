@@ -46,6 +46,14 @@ public class ScanPaths {
 			return D2(matrix,b);
 		else if(kt.equalsIgnoreCase("D3"))
 			return D3(matrix,b);
+		else if(kt.equalsIgnoreCase("S0"))
+			return S0(matrix,b);
+		else if(kt.equalsIgnoreCase("S1"))
+			return S1(matrix,b);
+		else if(kt.equalsIgnoreCase("S2"))
+			return S2(matrix,b);
+		else if(kt.equalsIgnoreCase("S3"))
+			return S3(matrix,b);
 		
 		int dim= b.length();
 		//controllare che kt � uno scanpath implementato
@@ -382,6 +390,374 @@ public class ScanPaths {
 		return new Path(ConstantsScan.SOUTH_EAST, path);
 	}
 	
+	public Path S0 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		int n = b.length()/2;
+		Pixel p  = new Pixel(xStart+n, yStart+n);
+		path.add(p);
+		
+		char move = 'U';
+		int add = 1;
+		int counter1 = 0;
+		int counter2 = 0;
+		
+		while( !(p.x==xEnd && p.y==yStart)){
+			if(move == 'U'){
+				p = p.transform(-1, 0);
+				path.add(p);				
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'L';
+					counter2++;
+					if (counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'L'){
+				p = p.transform(0, -1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'D';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'D'){
+				p = p.transform(1, 0);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'R';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'R'){
+				p = p.transform(0, 1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'U';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+		}
+		
+		for (Pixel pixel : path) {
+			System.out.println(pixel);
+		}
+		
+		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
+		return new Path(ConstantsScan.NORTH_EAST, path); 
+	}
+	
+	public Path S1 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		int n = b.length()/2;
+		Pixel p  = new Pixel(xStart+n-1, yStart+n);
+		path.add(p);
+		
+		char move = 'L';
+		int add = 1;
+		int counter1 = 0;
+		int counter2 = 0;
+		
+		while( !(p.x==xEnd && p.y==yEnd)){
+			if(move == 'U'){
+				p = p.transform(-1, 0);
+				path.add(p);				
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'L';
+					counter2++;
+					if (counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'L'){
+				p = p.transform(0, -1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'D';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'D'){
+				p = p.transform(1, 0);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'R';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'R'){
+				p = p.transform(0, 1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'U';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+		}
+		
+		for (Pixel pixel : path) {
+			System.out.println(pixel);
+		}
+		
+		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
+		return new Path(ConstantsScan.NORTH_WEST, path); 
+	}
+	
+	public Path S2 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		int n = b.length()/2;
+		Pixel p  = new Pixel(xStart+n-1, yStart+n-1);
+		path.add(p);
+		
+		char move = 'D';
+		int add = 1;
+		int counter1 = 0;
+		int counter2 = 0;
+		
+		while( !(p.x==xStart && p.y==yEnd)){
+			if(move == 'U'){
+				p = p.transform(-1, 0);
+				path.add(p);				
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'L';
+					counter2++;
+					if (counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'L'){
+				p = p.transform(0, -1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'D';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'D'){
+				p = p.transform(1, 0);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'R';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'R'){
+				p = p.transform(0, 1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'U';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+		}
+		
+		for (Pixel pixel : path) {
+			System.out.println(pixel);
+		}
+		
+		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
+		return new Path(ConstantsScan.SOUTH_WEST, path); 
+	}
+	
+	
+	public Path S3 (int matrix[][], Block b){
+		int xStart = b.getxStart();
+		int xEnd = b.getxEnd();
+		int yStart = b.getyStart();
+		int yEnd = b.getyEnd();
+		
+		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		
+		int n = b.length()/2;
+		Pixel p  = new Pixel(xStart+n, yStart+n-1);
+		path.add(p);
+		
+		char move = 'R';
+		int add = 1;
+		int counter1 = 0;
+		int counter2 = 0;
+		
+		while( !(p.x==xStart && p.y==yStart)){
+			if(move == 'U'){
+				p = p.transform(-1, 0);
+				path.add(p);				
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'L';
+					counter2++;
+					if (counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'L'){
+				p = p.transform(0, -1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'D';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'D'){
+				p = p.transform(1, 0);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'R';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+			if(move == 'R'){
+				p = p.transform(0, 1);
+				path.add(p);
+				counter1++;
+				
+				if(counter1 == add){
+					counter1 = 0;
+					move = 'U';
+					counter2++;
+					if(counter2 == 2){
+						add++;
+						counter2 = 0;
+					}
+				}
+			}
+			
+		}
+		
+		for (Pixel pixel : path) {
+			System.out.println(pixel);
+		}
+		
+		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
+		return new Path(ConstantsScan.SOUTH_EAST, path); 
+	}
 	
 
 	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4, int dim){
