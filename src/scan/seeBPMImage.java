@@ -2,11 +2,18 @@ package scan;
 
 import javax.imageio.ImageIO;
 
+import ac.ArithmeticEncoder;
+import ac.BitOutputStream;
+import ac.FlatFrequencyTable;
+import ac.FrequencyTable;
+import ac.SimpleFrequencyTable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import model.*;
 import scanpaths.ConstantsScan;
@@ -58,10 +65,13 @@ public class seeBPMImage {
 		
 		for(Integer ii : contexts) System.out.println(ii);
 		
+		arithmeticCoding(predictionsError,contexts);
+		
 		/*
 		int[] listOfContexts = new int[]{1,0,3,4,1,3,4,3,0,0,0,0};
 		
 		//arithmetic coding
+		
 		FlatFrequencyTable initFreqs = new FlatFrequencyTable(257);
 		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 		ArithmeticEncoder enc = new ArithmeticEncoder(new BitOutputStream(new FileOutputStream("compress")));
@@ -72,6 +82,9 @@ public class seeBPMImage {
 		enc.write(freqs, 256);  // EOF
 		enc.finish();  // Flush remaining code bits
 		*/
+		
+		
+		
 		//System.out.println(encode("(D2,(S0,C1,C2,O3),C3,(O2,C0,C0,D1))",64));
 		//System.out.println("100110111000001001010110001111010000000000101");
 
@@ -804,5 +817,95 @@ public class seeBPMImage {
 		}
 	}
 	
-	
+	private static ArrayList<byte[]> arithmeticCoding(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts){
+		ArrayList<int[]> frequency = new ArrayList<int[]>();
+
+		String[] buffers = new String[4];
+		double[] lowerbound = new double[4];
+		double[] highbound = new double[4];
+		int[] scale = new int[4];
+		//int[] n = new int[4];
+		int[] total = new int[4];
+		
+		for(int i=0; i < 4 ; i++){
+			buffers[i]="";
+			lowerbound[i] = 0;
+			highbound[i]=1;
+			scale[i] = 0;
+			//n[i]=0;
+			total[i]=511;
+			int[] f = new int[512];
+			for(int j=0; j < 512; j++)
+				f[j]=1;
+			frequency.add(f);
+		}
+		
+		int c=-1;
+		for(Integer e : predictionsError){
+			c = determinateContext(e,contexts);
+			
+			double range = highbound[c]-lowerbound[c];
+			
+			int occurrence = 0;
+			for(int j = -255; j <=e-1; j++)
+				occurrence+= frequency.get(c)[j+255];
+			
+			double lower = lowerbound[c] + range*(occurrence/total[c]);
+			
+			occurrence = 0;
+			for(int j = -255; j <=e; j++)
+				occurrence+= frequency.get(c)[j+255];
+			
+			double high= lowerbound[c] + range*(occurrence/total[c]);
+			
+			lowerbound[c] = lower;
+			highbound[c] = high;
+			
+			while(true){
+				if( highbound[c] < 0.5){
+					buffers[c]+="0";
+					if(scale[c] != 0)
+						for(int i=0; i < scale[c]; i++)
+							buffers[c]+="1";
+					lowerbound[c]=2*lowerbound[c];
+					highbound[c]= 2*highbound[c];
+					//n[c]+=scale[c]+1;
+					scale[c]=0;
+				}else if(lowerbound[c]>= 0.5){
+					buffers[c]+="1";
+					if(scale[c] != 0)
+						for(int i=0; i < scale[c]; i++)
+							buffers[c]+="0";
+					lowerbound[c]=2*(lowerbound[c]-0.5);
+					highbound[c]= 2*(highbound[c]-0.5);
+					//n[c]+=scale[c]+1;
+					scale[c]=0;
+				}else if( lowerbound[c]>= 0.25 && highbound[c] < 0.75){
+					lowerbound[c]=2*(lowerbound[c]-0.25);
+					highbound[c]= 2*(highbound[c]-0.25);
+					scale[c]++;
+				}else break;
+			}
+			
+			frequency.get(c)[e]++;
+			total[c]++;
+		}
+		
+		for(int i=0; i < 4 ; i++){
+			
+		}
+		
+		
+		return new ArrayList<byte[]>();
+		
+		
+		
+	}
+
+
+
+	private static int determinateContext(Integer e, ArrayList<Integer> contexts) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
