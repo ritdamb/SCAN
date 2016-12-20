@@ -6,7 +6,7 @@ public class Writer {
 		super();
 	}
 	
-	public void WriteImage (int size, String encScanPath, int pixel1, int pixel2, String encPredErrors ){
+	public void WriteImage (int size, String encScanPath, int pixel1, int pixel2, int n0,int n1, int n2, int n3, String encPredErrors ){
 		
 		//calcolo N
 		int n = (int) (Math.log(size) / Math.log(2));

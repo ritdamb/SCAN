@@ -30,6 +30,9 @@ public final class BitOutputStream implements AutoCloseable {
 	// Number of accumulated bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsFilled;
 	
+	private byte[] outputByte;
+	int i;
+	
 	
 	
 	/*---- Constructor ----*/
@@ -47,6 +50,13 @@ public final class BitOutputStream implements AutoCloseable {
 		numBitsFilled = 0;
 	}
 	
+	public BitOutputStream(){
+		outputByte = new byte[263224];
+		currentByte = 0;
+		numBitsFilled = 0;
+		i =0;
+	}
+	
 	
 	
 	/*---- Methods ----*/
@@ -62,10 +72,17 @@ public final class BitOutputStream implements AutoCloseable {
 		currentByte = (currentByte << 1) | b;
 		numBitsFilled++;
 		if (numBitsFilled == 8) {
-			output.write(currentByte);
+			if(output == null){
+				outputByte[i] = (byte) currentByte; 
+				i++;
+			}else output.write(currentByte);
 			currentByte = 0;
 			numBitsFilled = 0;
 		}
+	}
+	
+	public byte[] getByteStream(){
+		return outputByte;
 	}
 	
 	
@@ -78,7 +95,8 @@ public final class BitOutputStream implements AutoCloseable {
 	public void close() throws IOException {
 		while (numBitsFilled != 0)
 			write(0);
-		output.close();
+		if(output != null)
+			output.close();
 	}
 	
 }

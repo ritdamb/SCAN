@@ -30,6 +30,9 @@ public final class BitOutputStream {
 	// Number of accumulated bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsFilled;
 	
+	private byte[] outputByte;
+	int i;
+	
 	
 	
 	/*---- Constructor ----*/
@@ -47,6 +50,13 @@ public final class BitOutputStream {
 		numBitsFilled = 0;
 	}
 	
+	public BitOutputStream(){
+		outputByte = new byte[100];
+		currentByte = 0;
+		numBitsFilled = 0;
+		i =0;
+	}
+	
 	
 	
 	/*---- Methods ----*/
@@ -62,10 +72,17 @@ public final class BitOutputStream {
 		currentByte = (currentByte << 1) | b;
 		numBitsFilled++;
 		if (numBitsFilled == 8) {
-			output.write(currentByte);
+			if(output == null){
+				outputByte[i] = (byte) currentByte; 
+				i++;
+			}else output.write(currentByte);
 			currentByte = 0;
 			numBitsFilled = 0;
 		}
+	}
+	
+	public byte[] getByteStream(){
+		return outputByte;
 	}
 	
 	
