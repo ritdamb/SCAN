@@ -32,14 +32,9 @@ public class CompressSCAN {
 		
 		scannedPixel=new HashMap<String, String>();
 		first_pixel=null;
-		second_pixel=null;
-		
-		matrix  = loadImage(ImageIO.read(new File(pathInputFile)));
-		
-		blocks = getBlocks(matrix, ConstantsScan.blockSize);
-		
-		
-				
+		second_pixel=null;		
+		matrix  = loadImage(ImageIO.read(new File(pathInputFile)));		
+		blocks = Block.getBlocks(matrix, ConstantsScan.blockSize);		
 	}
 	
 	public void compress() throws IOException{
@@ -95,44 +90,6 @@ public class CompressSCAN {
 		return matrix;
 	}
 
-	private ArrayList<Block> getBlocks (int matrix[][], int N){
-		int len = matrix.length;
-		ArrayList<Block> blocks = new ArrayList<Block>();
-
-		//# di blocchi che entrano in larghezza e/o in altezza (dato che la matrice � quadrata)
-		int numOfBlockPerLine = len/N;
-		for(int i=1; i <= numOfBlockPerLine; i++){
-			if(i%2 != 0){ //scorro da destra a sinistra
-				for(int j=1; j<= numOfBlockPerLine; j++){
-					int xStart = (N*(i-1));
-					int xEnd = (N*i)-1;
-					int yStart = (len-1)-((N*j)-1);
-					int yEnd = (len-1)-(N*(j-1));
-					
-					blocks.add(new Block(xStart, xEnd, yStart, yEnd));
-					//System.out.println(blocks.get(blocks.size()-1));
-				}
-			}
-			else{ //else scorro da sinistra a destra
-				for(int j=numOfBlockPerLine; j>=1; j--){
-					int xStart = (N*(i-1));
-					int xEnd = (N*i)-1;
-					int yStart = (len-1)-((N*j)-1);
-					int yEnd = (len-1)-(N*(j-1));
-					
-					blocks.add(new Block(xStart, xEnd, yStart, yEnd));
-					//System.out.println(blocks.get(blocks.size()-1));
-				}
-			}
-		}
-
-		for(int i=0; i<blocks.size(); i++){
-			Block b = blocks.get(i);
-			//System.out.println("Blocco: xStart="+b.xStart+"; xEnd="+b.xEnd+"; yStart="+b.yStart+"; yEnd="+b.yEnd);
-		}
-
-		return blocks;
-	}
 
 	private BestPathOutput BestPath(int matrix[][], Block block, Pixel prevLastPixel){
 		BestPathOutput bpo = new BestPathOutput();
@@ -177,7 +134,7 @@ public class CompressSCAN {
 
 
 		if(block.length() > ConstantsScan.minimumBlockSize){
-			Block subRegions[] = splitBlock(block);
+			Block subRegions[] = Block.splitBlock(block);
 
 			BestPathOutput bpo1 = BestPath(matrix, subRegions[0], prevLastPixel);
 			BestPathOutput bpo2 = BestPath(matrix, subRegions[1], bpo1.getLastPixel());
@@ -218,21 +175,6 @@ public class CompressSCAN {
 		return bpo;
 	}
 
-	private  Block[] splitBlock(Block block) {
-		int xStart = block.getxStart();
-		int xEnd = block.getxEnd();
-		int yStart = block.getyStart();
-		int yEnd = block.getyEnd();
-
-		int newLength = block.length()/2;
-		Block subRegions[] = new Block[4];
-		subRegions[0] = new Block(xStart, (xStart + newLength -1), (yStart + newLength), yEnd );
-		subRegions[1] = new Block(xStart, (xStart + newLength -1), yStart, (yStart + newLength - 1));
-		subRegions[2] = new Block((xStart + newLength), xEnd, yStart, (yStart + newLength -1));
-		subRegions[3] = new Block((xStart + newLength), xEnd, (yStart + newLength), yEnd);
-
-		return subRegions;
-	}
 	
 	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel, Block block){
 
@@ -472,7 +414,7 @@ public class CompressSCAN {
 						j++;
 					}
 				}
-				Block[] blockSplitted = splitBlock(blocks.get(i));
+				Block[] blockSplitted = Block.splitBlock(blocks.get(i));
 				
 				for(int c=0; c < p.length ; c++){
 					path = s.scanPath(matrix, blockSplitted[c], p[c]);

@@ -12,8 +12,10 @@ public class WriteBit {
 
 	public static void main(String[] args){
 		
-		String header1="111";
-		String scanpath="100110111000001001010110001111010000000000101";
+		String header1="100";
+		String scanpath="00110111000001001010110001111010000000000101";
+		String pixel1 = "00001000";
+		String pixel2 = "00001010";
 		
 		
 		FileOutputStream file=null;
@@ -21,7 +23,7 @@ public class WriteBit {
 			file = new FileOutputStream("compress");
 			BitOutputStream out = new BitOutputStream(file);
 			
-			String toWrite = header1+scanpath;
+			String toWrite = header1+scanpath+pixel1+pixel2;
 			System.out.println("bit da scrivere : " + toWrite.length());
 			for(int i=0; i < toWrite.length(); i++)
 				if(toWrite.charAt(i) == '1')
@@ -32,13 +34,15 @@ public class WriteBit {
 			out.close();
 			
 			BitInputStream in = new BitInputStream(new FileInputStream("compress"));
+			String inputBits = "";
 			
 			int i = in.read();
 			while(i != -1 ){
-				System.out.print(i);
+				inputBits += i;
 				i = in.read();
 			}
-			System.out.println();
+			
+			System.out.println(inputBits);
 			System.out.println(toWrite);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
