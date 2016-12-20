@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 
 import ac.*;
+import model.ArithmeticCodeOutput;
 import model.BestPathOutput;
 import model.Block;
 import model.BlockErrorOutput;
@@ -68,8 +69,13 @@ public class CompressSCAN {
 		
 		//arithmetic coding
 		
-		ArrayList<byte[]> buffers = arithmeticCoding(predictionsError,contexts);
+		ArithmeticCodeOutput out = arithmeticCodingEncode(predictionsError,contexts);
+		
 		//write output
+		
+		
+		
+	
 	}
 	
 
@@ -796,14 +802,13 @@ public class CompressSCAN {
 		}
 	}
 	
-	private ArrayList<byte[]> arithmeticCoding(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts) throws IOException {
+	private ArithmeticCodeOutput arithmeticCodingEncode(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts) throws IOException {
 		
 		ArrayList<Integer> buff0 = new ArrayList<Integer>();
 		ArrayList<Integer> buff1 = new ArrayList<Integer>();
 		ArrayList<Integer> buff2 = new ArrayList<Integer>();
 		ArrayList<Integer> buff3 = new ArrayList<Integer>();
-		ArrayList<byte[]> output = new ArrayList<byte[]>();
-		
+		ArrayList<byte[]> stream = new ArrayList<byte[]>();
 		
 		for(int i=0; i < contexts.size(); i++){
 			if(contexts.get(i) == 0)
@@ -828,7 +833,7 @@ public class CompressSCAN {
 			freqs.increment(symbol);
 		}
 		bitOut.close();
-		output.add(bitOut.getByteStream());		
+		stream.add(bitOut.getByteStream());		
 		bitOut=new BitOutputStream();
 
 		for(Integer symbol: buff1 ) {
@@ -837,7 +842,7 @@ public class CompressSCAN {
 			freqs.increment(symbol);
 		}
 		bitOut.close();
-		output.add(bitOut.getByteStream());
+		stream.add(bitOut.getByteStream());
 		bitOut=new BitOutputStream();
 
 		
@@ -847,7 +852,7 @@ public class CompressSCAN {
 			freqs.increment(symbol);
 		}
 		bitOut.close();
-		output.add(bitOut.getByteStream());
+		stream.add(bitOut.getByteStream());
 		bitOut=new BitOutputStream();
 
 		
@@ -857,10 +862,31 @@ public class CompressSCAN {
 			freqs.increment(symbol);
 		}
 		bitOut.close();
-		output.add(bitOut.getByteStream());
+		stream.add(bitOut.getByteStream());
 		
 		enc.write(freqs, 511);  // EOF
 		enc.finish();  // Flush remaining code bits
+		
+
+		ArithmeticCodeOutput output = new ArithmeticCodeOutput(stream, buff0.size(), buff1.size(), buff2.size(), buff3.size());
+		
+		DecompressSCAN decompressor = new DecompressSCAN();
+		ArrayList<Integer> list = decompressor.arithmeticCodingDecode(stream);
+		
+		int i =0;
+		for(; i < buff0.size(); i++)
+			if(list.get(i) != buff0.get(i))
+				System.out.println("FAILED!!!!");
+		for(; i < buff1.size(); i++)
+			if(list.get(i) != buff0.get(i))
+				System.out.println("FAILED!!!!");
+		for(; i < buff2.size(); i++)
+			if(list.get(i) != buff0.get(i))
+				System.out.println("FAILED!!!!");
+		for(; i < buff3.size(); i++)
+			if(list.get(i) != buff0.get(i))
+				System.out.println("FAILED!!!!");
+		
 		
 		return output;
 		
