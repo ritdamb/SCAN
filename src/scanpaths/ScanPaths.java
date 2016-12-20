@@ -474,10 +474,7 @@ public class ScanPaths {
 			
 		}
 		
-		for (Pixel pixel : path) {
-			System.out.println(pixel);
-		}
-		
+
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
 		return new Path(ConstantsScan.NORTH_EAST, path); 
 	}
@@ -564,10 +561,6 @@ public class ScanPaths {
 				}
 			}
 			
-		}
-		
-		for (Pixel pixel : path) {
-			System.out.println(pixel);
 		}
 		
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
@@ -657,10 +650,7 @@ public class ScanPaths {
 			}
 			
 		}
-		
-		for (Pixel pixel : path) {
-			System.out.println(pixel);
-		}
+
 		
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
 		return new Path(ConstantsScan.SOUTH_WEST, path); 
@@ -749,10 +739,6 @@ public class ScanPaths {
 				}
 			}
 			
-		}
-		
-		for (Pixel pixel : path) {
-			System.out.println(pixel);
 		}
 		
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
