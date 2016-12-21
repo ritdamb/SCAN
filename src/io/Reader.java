@@ -21,7 +21,6 @@ public class Reader {
 
 	public Reader() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public void ReadImage(String path) throws IOException{
@@ -145,17 +144,22 @@ public class Reader {
 		ScanPaths sp = new ScanPaths();
 		ArrayList<Path> pathSequence = new ArrayList<Path>();
 		
+		Path prevPath = null;
 		for (int z = 0; z < scanPathTypes.size(); z++){
 			if(scanPathTypes.get(z).length() == 2){
 				Path b_path = sp.scanPath(matrix, blocks.get(z), scanPathTypes.get(z));
+				b_path.setPreviousPath(prevPath);
 				pathSequence.add(b_path);
+				prevPath = b_path;
 			}
 			else{ //è un path composto
 				Block[] blks = Block.splitBlock(blocks.get(z));
 				String subPaths[] =  scanPathTypes.get(z).split(",");
 				for(int y=0; y<4; y++){
 					Path b_path = sp.scanPath(matrix, blks[y], subPaths[y]);
-					pathSequence.add(b_path);				
+					b_path.setPreviousPath(prevPath);
+					pathSequence.add(b_path);
+					prevPath = b_path;
 				}
 			}
 		}

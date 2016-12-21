@@ -52,5 +52,16 @@ public class Path {
 	public int size(){
 		return path.size();
 	}
+
+
+	public Path getPreviousPath() {
+		return previousPath;
+	}
+
+
+	public void setPreviousPath(Path previousPath) {
+		this.previousPath = previousPath;
+	}
+	
 	
 }
