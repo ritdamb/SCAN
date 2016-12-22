@@ -58,7 +58,7 @@ public class ScanPaths {
 		int dim= b.length();
 		//controllare che kt � uno scanpath implementato
 
-		ArrayList<Pixel> scan4 = populate(scanMap.get(kt));
+		ArrayList<Pixel> scan4 = populate(scanMap.get(kt), kt);
 		ArrayList<Pixel> scan= new ArrayList<Pixel>();
 		Method method;
 		
@@ -99,26 +99,34 @@ public class ScanPaths {
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
-		//System.out.println("----- PATH C0 Start ---");
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		Pixel p = new Pixel(xStart-1, yEnd, "UR");
 		
 		for(int x = xStart; x <= xEnd; x++){
 			if(x%2 == 0){
 				for(int y = yEnd; y >= yStart; y--){
-					//System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
-					path.add(new Pixel(x, y));
+					if(y==yEnd)
+						p = p.transform(1,0);
+					else
+						p = p.transform(0, -1);
+					
+					path.add(p);
 				}
 			}
 			else{
 				for(int y = yStart; y <= yEnd; y++){
-					//System.out.println("Pixel ["+x+"]"+"["+y+"]:"+" "+matrix[x][y]);
-					path.add(new Pixel(x, y));
+					if(y==yStart)
+						p = p.transform(1,0);
+					else
+						p = p.transform(0,1);
+					
+					path.add(p);
 				}
 			}
 		}
 		//System.out.println("----- PATH C0 End ---");
 		
-		return new Path(ConstantsScan.NORTH_EAST, path);
+		return new Path(ConstantsScan.NORTH_EAST, path, "C0");
 	}
 	
 	private Path C1(int matrix[][], Block b){
@@ -126,24 +134,34 @@ public class ScanPaths {
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
-		int yEnd = b.getyEnd();
-		
+		int yEnd = b.getyEnd();	
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		Pixel p = new Pixel(xStart, yStart-1, "UL");
 		
 		for(int y = yStart; y <= yEnd; y++){
 			if(y%2 == 0){
 				for(int x = xStart; x <= xEnd; x++){
-					path.add(new Pixel(x, y));
+					if(x == xStart)
+						p = p.transform(0, 1);
+					else
+						p = p.transform(1, 0);
+					
+					path.add(p);
 				}
 			}
 			else{
 				for(int x = xEnd; x >= xStart; x--){
-					path.add(new Pixel(x, y));
+					if(x == xEnd)
+						p = p.transform(0, 1);
+					else
+						p = p.transform(-1, 0);
+					
+					path.add(p);
 				}
 			}
 		}
 		
-		return new Path(ConstantsScan.NORTH_WEST, path);
+		return new Path(ConstantsScan.NORTH_WEST, path, "C1");
 	}
 	
 	
@@ -153,23 +171,33 @@ public class ScanPaths {
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
-		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		Pixel p = new Pixel(xEnd+1, yStart, "BL");
 		
 		for(int x = xEnd; x >= xStart; x--){
 			if(x%2 == 0){
 				for(int y = yStart; y <= yEnd; y++){
-					path.add(new Pixel(x, y));
+					if(y == yStart)
+						p = p.transform(-1, 0);
+					else
+						p = p.transform(0, -1);
+					
+					path.add(p);
 				}
 			}
 			else{
 				for(int y = yEnd; y >= yStart; y--){
-					path.add(new Pixel(x, y));
+					if(y == yEnd)
+						p = p.transform(-1, 0);
+					else
+						p = p.transform(0, 1);
+					
+					path.add(p);
 				}
 			}
 		}
 		
-		return new Path(ConstantsScan.SOUTH_WEST, path);
+		return new Path(ConstantsScan.SOUTH_WEST, path, "C2");
 	}
 	
 	private Path C3(int matrix[][], Block b){
@@ -178,23 +206,34 @@ public class ScanPaths {
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
-		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
+		Pixel p = new Pixel(xEnd, yEnd+1, "BR");
 		
-		for(int yi = yEnd; yi >= yStart; yi--){
-			if(yi%2 == 0){
+		
+		for(int y = yEnd; y >= yStart; y--){
+			if(y%2 == 0){
 				for(int x = xEnd; x >= xStart; x--){
-					path.add(new Pixel(x, yi));
+					if(x == xEnd)
+						p = p.transform(0, -1);
+					else
+						p = p.transform(1, 0);
+					
+					path.add(p);
 				}
 			}
 			else{
 				for(int x = xStart; x <= xEnd; x++){
-					path.add(new Pixel(x, yi));
+					if(x == xStart)
+						p = p.transform(0, -1);
+					else
+						p = p.transform(-1, 0);
+					
+					path.add(p);
 				}
 			}
 		}
 		
-		return new Path(ConstantsScan.SOUTH_WEST, path);
+		return new Path(ConstantsScan.SOUTH_WEST, path, "C3");
 	}
 	
 	public Path D0 (int matrix[][], Block b){
@@ -205,7 +244,7 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		Pixel p = new Pixel(xStart, yEnd);
+		Pixel p = new Pixel(xStart, yEnd, "UR");
 		path.add(p);
 		p = p.transform(0, -1);
 		path.add(p);
@@ -242,7 +281,7 @@ public class ScanPaths {
 			}
 		}
 		
-		return new Path(ConstantsScan.NORTH_EAST, path);
+		return new Path(ConstantsScan.NORTH_EAST, path, "D0");
 	}
 	
 	public Path D1 (int matrix[][], Block b){
@@ -253,7 +292,7 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		Pixel p = new Pixel(xStart, yStart);
+		Pixel p = new Pixel(xStart, yStart, "UL");
 		path.add(p);
 		p = p.transform(1, 0);
 		path.add(p);
@@ -290,7 +329,7 @@ public class ScanPaths {
 			}
 		}
 		
-		return new Path(ConstantsScan.NORTH_WEST, path);
+		return new Path(ConstantsScan.NORTH_WEST, path, "D1");
 	}
 	
 	
@@ -302,7 +341,7 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		Pixel p = new Pixel(xEnd, yStart);
+		Pixel p = new Pixel(xEnd, yStart, "BL");
 		path.add(p);
 		p = p.transform(-1, 0);
 		path.add(p);
@@ -339,7 +378,7 @@ public class ScanPaths {
 			}
 		}
 		
-		return new Path(ConstantsScan.SOUTH_WEST, path);
+		return new Path(ConstantsScan.SOUTH_WEST, path, "D2");
 	}
 	
 	public Path D3 (int matrix[][], Block b){
@@ -350,7 +389,7 @@ public class ScanPaths {
 		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
-		Pixel p = new Pixel(xEnd, yEnd);
+		Pixel p = new Pixel(xEnd, yEnd, "BR");
 		path.add(p);
 		p = p.transform(0, -1);
 		path.add(p);
@@ -387,7 +426,7 @@ public class ScanPaths {
 			}
 		}
 		
-		return new Path(ConstantsScan.SOUTH_EAST, path);
+		return new Path(ConstantsScan.SOUTH_EAST, path, "D3");
 	}
 	
 	public Path S0 (int matrix[][], Block b){
@@ -399,7 +438,7 @@ public class ScanPaths {
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		int n = b.length()/2;
-		Pixel p  = new Pixel(xStart+n, yStart+n);
+		Pixel p  = new Pixel(xStart+n, yStart+n, "BR");
 		path.add(p);
 		
 		char move = 'U';
@@ -476,7 +515,7 @@ public class ScanPaths {
 		
 
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
-		return new Path(ConstantsScan.NORTH_EAST, path); 
+		return new Path("", path, "S0"); 
 	}
 	
 	public Path S1 (int matrix[][], Block b){
@@ -488,7 +527,7 @@ public class ScanPaths {
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		int n = b.length()/2;
-		Pixel p  = new Pixel(xStart+n-1, yStart+n);
+		Pixel p  = new Pixel(xStart+n-1, yStart+n, "UR");
 		path.add(p);
 		
 		char move = 'L';
@@ -564,7 +603,7 @@ public class ScanPaths {
 		}
 		
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
-		return new Path(ConstantsScan.NORTH_WEST, path); 
+		return new Path("", path, "S1"); 
 	}
 	
 	public Path S2 (int matrix[][], Block b){
@@ -576,7 +615,7 @@ public class ScanPaths {
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		int n = b.length()/2;
-		Pixel p  = new Pixel(xStart+n-1, yStart+n-1);
+		Pixel p  = new Pixel(xStart+n-1, yStart+n-1, "UL");
 		path.add(p);
 		
 		char move = 'D';
@@ -653,7 +692,7 @@ public class ScanPaths {
 
 		
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
-		return new Path(ConstantsScan.SOUTH_WEST, path); 
+		return new Path("", path, "S2"); 
 	}
 	
 	
@@ -666,7 +705,7 @@ public class ScanPaths {
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		int n = b.length()/2;
-		Pixel p  = new Pixel(xStart+n, yStart+n-1);
+		Pixel p  = new Pixel(xStart+n, yStart+n-1, "BL");
 		path.add(p);
 		
 		char move = 'R';
@@ -742,7 +781,7 @@ public class ScanPaths {
 		}
 		
 		//NON ABBIAMO UN ANGOLO DI PARTENZA, SI PARTE DAL CENTRO
-		return new Path(ConstantsScan.SOUTH_EAST, path); 
+		return new Path("", path, "S3"); 
 	}
 	
 
@@ -752,7 +791,7 @@ public class ScanPaths {
 
 		
 		for (Pixel p : scan4) {
-			scan.add(new Pixel(p.getX()+(dim-4),p.getY()+(dim-4)));
+			scan.add(new Pixel(p.getX()+(dim-4),p.getY()+(dim-4), p.predictor));
 		}
 		
 		int i=scan4.size()-1;
@@ -763,8 +802,10 @@ public class ScanPaths {
 		while( i < ((n*n)-1) ){
 			Pixel currentPath = scan.get(i);
 			if(currentPath.getX() == n-1){ // cambio colonna
-				scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()-1));
+				//scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()-1));
+				scan.add(currentPath.transform(0, -1));
+				scan.add(currentPath.transform(-1, -1));
 				
 				goUp = ((n-1)-currentPath.getY());
 				goRx=((n-1)-currentPath.getY())+1;
@@ -772,23 +813,29 @@ public class ScanPaths {
 				goDown=((n-1)-currentPath.getY())+2;
 				i= i+2;
 			}else if(goUp != 0){ // salgo
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+				scan.add(currentPath.transform(-1, 0));
 				i++;
 				goUp--;
 			}else if(goRx != 0){ // vado a destra
-				scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+				//scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+				scan.add(currentPath.transform(0, 1));
 				i++;
 				goRx--;
 			}else if(goRx == 0 && currentPath.getY() == n-1){//cambio riga
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()-1));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()-1));
+				scan.add(currentPath.transform(-1, 0));
+				scan.add(currentPath.transform(-1, -1));
 				i= i+2;
 			}else if( goLx != 0 ){ // vado a sinistra
-				scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+				//scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+				scan.add(currentPath.transform(0, -1));
 				i++;
 				goLx--;
 			}else if(goDown != 0 ){// scendo
-				scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+				//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+				scan.add(currentPath.transform(1, 0));
 				i++;
 				goDown--;
 			}
@@ -803,7 +850,7 @@ public class ScanPaths {
 
 		
 		for (Pixel p : scan4) {
-			scan.add(new Pixel(p.getX()+(dim-4),p.getY()));
+			scan.add(new Pixel(p.getX()+(dim-4),p.getY(), p.predictor));
 		}
 		
 		int i=scan4.size()-1;
@@ -814,31 +861,39 @@ public class ScanPaths {
 		while( i < ((n*n)-1) ){
 			Pixel currentPath = scan.get(i);
 			if(currentPath.getY() == 0){ // cambio riga
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()+1));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()+1));
+				scan.add(currentPath.transform(-1, 0));
+				scan.add(currentPath.transform(-1, 1));
 				goRx=((n-1)-currentPath.getX());
 				goDown=((n-1)-currentPath.getX())+1;
 				goUp = ((n-1)-currentPath.getX())+1;
 				goLx=((n-1)-currentPath.getX())+2;
 				i= i+2;
 			}else if(goRx != 0){ // vado a destra
-				scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+				//scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+				scan.add(currentPath.transform(0, 1));
 				i++;
 				goRx--;
 			}else if(goDown != 0 ){// scendo
-				scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+				//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+				scan.add(currentPath.transform(1, 0));
 				i++;
 				goDown--;
 			}else if(goDown == 0 && currentPath.getX() == n-1){//cambio colonna
-				scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()+1));
+				//scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()+1));
+				scan.add(currentPath.transform(0, 1));
+				scan.add(currentPath.transform(-1, 1));
 				i= i+2;
 			}else if(goUp != 0){ // salgo
-				scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+				//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+				scan.add(currentPath.transform(-1, 0));
 				i++;
 				goUp--;
 			}else if( goLx != 0 ){ // vado a sinistra
-				scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+				//scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+				scan.add(currentPath.transform(0, -1));
 				i++;
 				goLx--;
 				
@@ -865,32 +920,40 @@ public class ScanPaths {
 				while( i < ((n*n)-1) ){
 					Pixel currentPath = scan.get(i);
 					if(currentPath.getX() == 0){ // cambio colonna
-						scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()+1));
+						//scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()+1));
+						scan.add(currentPath.transform(0, 1));
+						scan.add(currentPath.transform(1, 1));
 						goDown=currentPath.getY();
 						goLx=currentPath.getY()+1;
 						goRx=currentPath.getY()+1;
 						goUp = currentPath.getY()+2;
 						i= i+2;
 					}else if(goDown != 0 ){// scendo
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+						scan.add(currentPath.transform(1, 0));
 						i++;
 						goDown--;
 					}else if( goLx != 0 ){ // vado a sinistra
-						scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+						//scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+						scan.add(currentPath.transform(0, -1));
 						i++;
 						goLx--;
 						
 					}else if(goLx == 0 && currentPath.getY() == 0){//cambio riga
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()+1));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()+1));
+						scan.add(currentPath.transform(1, 0));
+						scan.add(currentPath.transform(1, 1));
 						i= i+2;
 					}else if(goRx != 0){ // vado a destra
-						scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+						//scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+						scan.add(currentPath.transform(0, 1));
 						i++;
 						goRx--;
 					}else if(goUp != 0){ // salgo
-						scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+						//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+						scan.add(currentPath.transform(-1, 0));
 						i++;
 						goUp--;
 					}
@@ -905,7 +968,7 @@ public class ScanPaths {
 
 				
 				for (Pixel p : scan4) {
-					scan.add(new Pixel(p.getX(),p.getY()+(dim-4)));
+					scan.add(new Pixel(p.getX(),p.getY()+(dim-4),p.predictor));
 				}
 				
 				int i=scan4.size()-1;
@@ -917,32 +980,40 @@ public class ScanPaths {
 				while( i < ((n*n)-1) ){
 					Pixel currentPath = scan.get(i);
 					if(currentPath.getY() == n-1){ // cambio riga
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()-1));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+						scan.add(currentPath.transform(1, 0));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()-1));
+						scan.add(currentPath.transform(1, -1));
 						goLx=currentPath.getX();
 						goUp = currentPath.getX()+1;
 						goDown=currentPath.getX()+1;
 						goRx=currentPath.getX()+2;
 						i= i+2;
 					}else if( goLx != 0 ){ // vado a sinistra
-						scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+						//scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+						scan.add(currentPath.transform(0, -1));
 						i++;
 						goLx--;
 						
 					}else if(goUp != 0){ // salgo
-						scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+						//scan.add(new Pixel(currentPath.getX()-1, currentPath.getY()));
+						scan.add(currentPath.transform(-1, 0));
 						i++;
 						goUp--;
 					}else if(goUp == 0 && currentPath.getX() == 0){//cambio colonna
-						scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()-1));
+						//scan.add(new Pixel(currentPath.getX(), currentPath.getY()-1));
+						scan.add(currentPath.transform(0, -1));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()-1));
+						scan.add(currentPath.transform(1, -1));
 						i= i+2;
 					}else if(goDown != 0 ){// scendo
-						scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+						//scan.add(new Pixel(currentPath.getX()+1, currentPath.getY()));
+						scan.add(currentPath.transform(1, 0));
 						i++;
 						goDown--;
 					}else if(goRx != 0){ // vado a destra
-						scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+						//scan.add(new Pixel(currentPath.getX(), currentPath.getY()+1));
+						scan.add(currentPath.transform(0, 1));
 						i++;
 						goRx--;
 					}
@@ -957,25 +1028,30 @@ public class ScanPaths {
 		Pixel p = scan8.get(i); 
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 
-		
+		String pred = "";
 		if(direction.equals(ConstantsScan.NORTH_EAST)){
 			yStart=block.getyEnd();
 			xStart=block.getxStart();
+			pred="UR";
 		}else if(direction.equals(ConstantsScan.NORTH_WEST)){
 			yStart=block.getyStart();
 			xStart=block.getxStart();
+			pred="UL";
 		}else if(direction.equals(ConstantsScan.SOUTH_WEST)){
 			yStart=block.getyStart();
 			xStart=block.getxEnd();
+			pred="BL";
 		}else{
 			yStart=block.getyEnd();
 			xStart=block.getxEnd();
+			pred="BR";
 		}
 		
 		//non controllo che parto da noth-east poi va inserito
 		//int pixel = matrix[xStart][yStart];
 		//System.out.println("["+ xStart+"]["+yStart +"]:" + pixel);
-		path.add(new Pixel(xStart,yStart));
+		Pixel p1 = new Pixel(xStart,yStart, pred);
+		path.add(p1);
 
 		x1=p.getX();
 		y1=p.getY();
@@ -990,9 +1066,11 @@ public class ScanPaths {
 			
 			int x=posx +(x2-x1);
 			int y=posy+(y2-y1);
+			p1 = p1.transform(x2-x1,y2-y1);
 			
 			
-			path.add(new Pixel(x,y));
+			//path.add(new Pixel(x,y));
+			path.add(p1);
 			//System.out.println("["+x+"]["+y+"]:" + matrix[x][y]);
 			
 			posx=x;
@@ -1001,16 +1079,35 @@ public class ScanPaths {
 			y1=y2;
 		}
 		
-		return new Path(direction, path);
+		return new Path(direction, path, "");
 	}
 	
-	private static ArrayList<Pixel> populate(String scan4){
+	private static ArrayList<Pixel> populate(String scan4, String kt){
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
+		String pred;
+		if(kt.equals("O0"))
+			pred="UR";
+		else if(kt.equals("O1"))
+			pred="UL";
+		else if(kt.equals("O2"))
+			pred="BL";
+		else
+			pred="BR";
+		
+		char xy[] = new char[2];
+		scan4.getChars(0, 2, xy, 0);
+		scan4 = scan4.substring(2);
+		Pixel p = new Pixel( Integer.parseInt(""+xy[0]), Integer.parseInt(""+xy[1]), pred);
+		scan.add(p);
+		
 		while(scan4.length()!= 0){
-			char xy[] = new char[2];
+			xy = new char[2];
 			scan4.getChars(0, 2, xy, 0);
 			scan4 = scan4.substring(2);
-			scan.add(new Pixel( Integer.parseInt(""+xy[0]), Integer.parseInt(""+xy[1])));
+			int newX = Integer.parseInt(""+xy[0]);
+			int newY = Integer.parseInt(""+xy[1]);
+			p = p.transform(newX-p.getX(), newY-p.getY());
+			scan.add(p);
 		}
 		return scan;
 

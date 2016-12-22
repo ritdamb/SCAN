@@ -165,19 +165,20 @@ public class Reader {
 		}
 		
 		//OK A QUESTO PUNTO HO LA LISTA DI PATH IN ORDINE SULLA MATRICE
-		//BISOGNA RICOSTRUIRE L'IMMAGINE
+		//MI MANCANO LE SEQUENZE DI CONTESTI
+		//E POI BISOGNA RICOSTRUIRE L'IMMAGINE
 		
 		
-		BufferedImage image2 = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
+		BufferedImage outputImage = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
         for(int k=0; k<size; k++) {
             for(int j=0; j<size; j++) {
                 int a = matrix[k][j];
                 Color newColor = new Color(a, a, a);
-                image2.setRGB(k,j,newColor.getRGB());
+                outputImage.setRGB(k,j,newColor.getRGB());
             }
         }
         File output = new File("64x64.bmp");
-        ImageIO.write(image2, "bmp", output);
+        ImageIO.write(outputImage, "bmp", output);
 
 
 	}

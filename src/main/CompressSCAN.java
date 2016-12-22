@@ -424,13 +424,9 @@ public class CompressSCAN {
 				path = s.scanPath(matrix, blocks.get(i), scan);
 				contexts.addAll(getContext(matrix,path,blocks.get(i)));
 			}
-		}
+		}	
 		
-		
-		
-		
-		return contexts;
-		
+		return contexts;	
 	}
 	
 	private ArrayList<Integer> getContext(int matrix[][], Path path, Block block){

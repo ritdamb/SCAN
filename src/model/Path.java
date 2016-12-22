@@ -8,7 +8,7 @@ public class Path {
 	Path previousPath;
 	ArrayList<Pixel> path;
 	
-	public Path(String startAngle, ArrayList<Pixel> path) {
+	public Path(String startAngle, ArrayList<Pixel> path, String usedPath) {
 		super();
 		this.startAngle = startAngle;
 		this.path = path;
