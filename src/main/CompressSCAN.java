@@ -178,122 +178,21 @@ public class CompressSCAN {
 	
 	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel, Block block){
 
-		Pixel pixel, prevPixel = null; //prevPixel sarebbe il nostro pixel s
-		String lastPredictorUsed = null;
-
+		Pixel pixel; //prevPixel sarebbe il nostro pixel s
 		ArrayList<Integer> L = new ArrayList<Integer>(); //Sequence L of prediction errors along P
-
-		for(int i=0; i < path.size(); i++){
+		
+		//il primo pixel del blocco lo faccio fuori perchè prendo il PrevLastPixel che è l'ultimo dello scanpath precendente
+		//poi invece prendo il pixel precedente (i-1)
+		pixel=path.getPixel(0);
+		int err = calcPredictionErr(pixel, PrevLastPixel, pixel.predictor, matrix, block);
+		L.add(err);
+		scannedPixel.put(pixel.x+"-"+pixel.y, null);
+		
+		for(int i=1; i < path.size(); i++){
 			pixel=path.getPixel(i);
-			//vado a vedere se � il primo pixel del primo blocco scansionato dell'immagine
-			if(PrevLastPixel == null && i == 0){
-				L.add(0);
-				prevPixel=pixel;
-				scannedPixel.put(pixel.x+"-"+pixel.y, null);
-				if(path.startAngle.equals(ConstantsScan.NORTH_EAST))
-					lastPredictorUsed="UR";
-				else if(path.startAngle.equals(ConstantsScan.NORTH_WEST))
-					lastPredictorUsed="UL";
-				else if(path.startAngle.equals(ConstantsScan.SOUTH_WEST))
-					lastPredictorUsed="BL";
-				else if(path.startAngle.equals(ConstantsScan.SOUTH_EAST))
-					lastPredictorUsed="BR";
-
-				continue;
-			}
-			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) 
-				//al primo pixel? Vedo l'angolo di partenza
-				String startAngle = path.getStartAngle();
-
-				if(startAngle.equals(ConstantsScan.NORTH_EAST)){//UR {N,E}
-					int e = calcPredictionErr(pixel, PrevLastPixel, "UR", matrix,block);
-					L.add(e);
-					lastPredictorUsed = "UR";
-				}
-
-				else if(startAngle.equals(ConstantsScan.NORTH_WEST)){//UL {N,W}
-					int e = calcPredictionErr(pixel, PrevLastPixel, "UL", matrix,block);
-					L.add(e);
-					lastPredictorUsed = "UL";
-				}
-
-				else if(startAngle.equals(ConstantsScan.SOUTH_WEST)){//BL {S,W}
-					int e = calcPredictionErr(pixel, PrevLastPixel, "BL", matrix,block);
-					L.add(e);
-					lastPredictorUsed = "BL";
-				}
-				else if(startAngle.equals(ConstantsScan.SOUTH_EAST)){//BR {S,E}
-					int e = calcPredictionErr(pixel, PrevLastPixel, "BR", matrix,block);
-					L.add(e);
-					lastPredictorUsed = "BR";
-				}
-
-				scannedPixel.put(pixel.x+"-"+pixel.y, null);
-				prevPixel=pixel;
-
-			}
-			else { //qui entro se non sono nel primo pixel del path
-				//La prima cosa da fare � determinare il movimento
-
-				int Xmove = pixel.x - prevPixel.x;
-				int Ymove = pixel.y - prevPixel.y;
-
-				String s = Xmove+";"+Ymove;
-				int e = 0;
-
-				if(s.equals("0;-1")){ //spostamento verso Ovest <-
-
-					if(lastPredictorUsed.startsWith("U")){
-						e = calcPredictionErr(pixel, prevPixel, "UR", matrix, block);
-					}
-					else{
-						e = calcPredictionErr(pixel, prevPixel, "BR", matrix, block);
-					}
-				}
-				else if(s.equals("1;0")){ //spostamento verso Sud
-					if(lastPredictorUsed.endsWith("R")){
-						e = calcPredictionErr(pixel, prevPixel, "UR", matrix, block);
-					}
-					else{
-						e = calcPredictionErr(pixel, prevPixel, "UL", matrix, block);
-					}
-				}
-				else if(s.equals("0;1")){ //spostamento verso Est ->
-					if(lastPredictorUsed.startsWith("U")){
-						e = calcPredictionErr(pixel, prevPixel, "UL", matrix, block);
-					}
-					else{
-						e = calcPredictionErr(pixel, prevPixel, "BL", matrix, block);
-					}
-				}
-				else if(s.equals("-1;0")){ //spostamento verso Nord
-					if(lastPredictorUsed.endsWith("R")){
-						e = calcPredictionErr(pixel, prevPixel, "BR", matrix, block);
-					}
-					else{
-						e = calcPredictionErr(pixel, prevPixel, "BL", matrix, block);
-					}
-				}
-				else if(s.equals("1;-1")){ //spostamento verso Sud-Ovest
-					e = calcPredictionErr(pixel, prevPixel, "UR", matrix, block);
-				}
-				else if(s.equals("1;1")){ //spostamento verso Sud-Est
-					e = calcPredictionErr(pixel, prevPixel, "UL", matrix, block);
-				}
-				else if(s.equals("-1;1")){ //spostamento verso Nord-Est
-					e = calcPredictionErr(pixel, prevPixel, "BL", matrix, block);
-				}
-				else if(s.equals("-1;-1")){ //spostamento verso Nord-Ovest
-					e = calcPredictionErr(pixel, prevPixel, "BR", matrix, block);
-				}
-
-				L.add(e);
-
-				scannedPixel.put(pixel.x+"-"+pixel.y, null);
-				prevPixel = pixel;
-
-			}	
-
+			int e = calcPredictionErr(pixel, path.getPixel(i-1), pixel.predictor, matrix, block);
+			L.add(e);
+			scannedPixel.put(pixel.x+"-"+pixel.y, null);
 		}
 
 		//faccio la somma dei valori assoluti di tutti gli errori di predizione
@@ -301,7 +200,6 @@ public class CompressSCAN {
 		for (Integer e : L) {
 			sum += Math.abs(e);
 		}
-
 
 		BlockErrorOutput beo = new BlockErrorOutput(sum, L);
 		return beo;
@@ -312,10 +210,9 @@ public class CompressSCAN {
 		boolean use_s_Pixel = false;
 
 		if(predictor == "UR"){
-			if((actualPixel.x - 1) >= block.getxStart()  && (actualPixel.y + 1) <= block.getyEnd()){ //vedo se il pixel a Nord e ad Est non escono fuori dal blocco
 				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
-				//vedo se i pixel q ed r sono stati gi� scansionati
+				//vedo se i pixel q ed r sono stati già scansionati
 				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
 					int pVal = matrix[actualPixel.x][actualPixel.y];
 					int qVal = matrix[q.x][q.y];
@@ -325,12 +222,9 @@ public class CompressSCAN {
 				}
 				else
 					use_s_Pixel = true;
-			}
-			else
-				use_s_Pixel = true;
+			
 		}
 		else if(predictor == "UL"){
-			if((actualPixel.y - 1) >= block.getyStart()  && (actualPixel.x - 1) >= block.getxStart()){ //vedo se il pixel a Nord e ad Ovest non escono fuori dal blocco
 				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -343,13 +237,9 @@ public class CompressSCAN {
 				}
 				else
 					use_s_Pixel = true;
-			}
-			else
-				use_s_Pixel = true;
-
+				
 		}
 		else if(predictor == "BL"){
-			if((actualPixel.y -1) >= block.getyStart()  && (actualPixel.x + 1) <= block.getxEnd()){ //vedo se il pixel a Sud e ad Ovest non escono fuori dal blocco
 				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -362,12 +252,9 @@ public class CompressSCAN {
 				}
 				else
 					use_s_Pixel = true;
-			}
-			else
-				use_s_Pixel = true;
+		
 		}
 		else if(predictor == "BR"){
-			if((actualPixel.y + 1) <= block.getyEnd()  && (actualPixel.x + 1) <= block.getxEnd()){ //vedo se il pixel a Sud e ad Est non escono fuori dalla matrice
 				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
 				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
 				//vedo se i pixel q ed r sono stati gi� scansionati
@@ -380,12 +267,13 @@ public class CompressSCAN {
 				}
 				else
 					use_s_Pixel = true;
-			}
-			else
-				use_s_Pixel = true;
+
 		}
 
 		if (use_s_Pixel){
+			if (prevPixel == null){
+				return 0;
+			}
 			int pVal = matrix[actualPixel.x][actualPixel.y];
 			int sVal = matrix[prevPixel.x][prevPixel.y];
 			int e = Math.abs(pVal - sVal);
