@@ -27,52 +27,52 @@ public class CompressSCAN {
 	private Pixel second_pixel;
 	private int[][] matrix;
 	private ArrayList<Block> blocks;
-	
+
 	public CompressSCAN(String pathInputFile, String pathOutFile) throws IOException{
-		
+
 		scannedPixel=new HashMap<String, String>();
 		first_pixel=null;
 		second_pixel=null;		
 		matrix  = loadImage(ImageIO.read(new File(pathInputFile)));		
 		blocks = Block.getBlocks(matrix, ConstantsScan.blockSize);		
 	}
-	
+
 	public void compress() throws IOException{
 		//scanning and prediction
 		Pixel lastPixel = null;
 		ArrayList<String> scanPaths = new ArrayList<String>();
 		ArrayList<Integer> predictionsError = new ArrayList<Integer>();
-		
+
 		for(int i=0; i<blocks.size();i++){
 
 			BestPathOutput bpo = BestPath(matrix, blocks.get(i), lastPixel);
-			
+
 			lastPixel = bpo.getLastPixel();
 			predictionsError.addAll(bpo.getL());
 			scanPaths.add(bpo.getBestPathName());
-			
+
 		}
 		//contextmodeling
-		
+
 		ArrayList<Integer> contexts = context(matrix,blocks, scanPaths);
-		
+
 		//scanPath encode
-		
+
 		String encodeScanPaths="";
 		for(String scan : scanPaths ) 
 			encodeScanPaths+=encode(scan,ConstantsScan.blockSize);
-		
+
 		//arithmetic coding
-		
+
 		ArithmeticCodeOutput out = arithmeticCodingEncode(predictionsError,contexts);
-		
+
 		//write output
-		
-		
-		
-	
+
+
+
+
 	}
-	
+
 
 	private int[][] loadImage(BufferedImage image){
 		int[][] matrix = new int[image.getWidth()][image.getHeight()];
@@ -101,7 +101,7 @@ public class CompressSCAN {
 		ArrayList<Integer> listOfPrediction = null; 
 		Path path;
 		BlockErrorOutput beo;
-		
+
 		for(int i =0; i < k.length; i++){
 			for(t=0; t < ConstantsScan.maxDirectionScan; t++){
 				if(k[i]== 'C' && t == 0){ // se � la prima volta che calcolo l'errore allora � l'errore minimo
@@ -113,10 +113,10 @@ public class CompressSCAN {
 
 					continue;
 				}
-				
+
 				path = s.scanPath(matrix, block, ""+k[i]+t);
 				beo = BlockError(matrix, path, prevLastPixel,block);
-				
+
 				if(beo.getE()< minError){
 					minError = beo.getE();
 					minScanKT=""+k[i]+t;
@@ -125,9 +125,9 @@ public class CompressSCAN {
 				}
 			}
 		}
-		
-	
-		
+
+
+
 		int B = 4;
 		if(block.length() > ConstantsScan.minimumBlockSize)
 			B = 5;
@@ -165,29 +165,29 @@ public class CompressSCAN {
 		}
 		else{
 
-			
+
 			bpo.setBestPathName(minScanKT);
 			bpo.setE(minError);
 			bpo.setB(B);
 			bpo.setL(listOfPrediction);
 		}
-		
+
 		return bpo;
 	}
 
-	
+
 	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel, Block block){
 
 		Pixel pixel; //prevPixel sarebbe il nostro pixel s
 		ArrayList<Integer> L = new ArrayList<Integer>(); //Sequence L of prediction errors along P
-		
+
 		//il primo pixel del blocco lo faccio fuori perchè prendo il PrevLastPixel che è l'ultimo dello scanpath precendente
 		//poi invece prendo il pixel precedente (i-1)
 		pixel=path.getPixel(0);
 		int err = calcPredictionErr(pixel, PrevLastPixel, pixel.predictor, matrix, block);
 		L.add(err);
 		scannedPixel.put(pixel.x+"-"+pixel.y, null);
-		
+
 		for(int i=1; i < path.size(); i++){
 			pixel=path.getPixel(i);
 			int e = calcPredictionErr(pixel, path.getPixel(i-1), pixel.predictor, matrix, block);
@@ -210,63 +210,63 @@ public class CompressSCAN {
 		boolean use_s_Pixel = false;
 
 		if(predictor == "UR"){
-				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
-				//vedo se i pixel q ed r sono stati già scansionati
-				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
-					int pVal = matrix[actualPixel.x][actualPixel.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int e = pVal - (qVal+rVal)/2;
-					return e;
-				}
-				else
-					use_s_Pixel = true;
-			
+			Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
+			Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
+			//vedo se i pixel q ed r sono stati già scansionati
+			if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+				int pVal = matrix[actualPixel.x][actualPixel.y];
+				int qVal = matrix[q.x][q.y];
+				int rVal = matrix[r.x][r.y];
+				int e = pVal - (qVal+rVal)/2;
+				return e;
+			}
+			else
+				use_s_Pixel = true;
+
 		}
 		else if(predictor == "UL"){
-				Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
-				//vedo se i pixel q ed r sono stati gi� scansionati
-				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
-					int pVal = matrix[actualPixel.x][actualPixel.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int e = pVal - (qVal+rVal)/2;
-					return e;
-				}
-				else
-					use_s_Pixel = true;
-				
+			Pixel q = new Pixel(actualPixel.x-1, actualPixel.y);
+			Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
+			//vedo se i pixel q ed r sono stati gi� scansionati
+			if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+				int pVal = matrix[actualPixel.x][actualPixel.y];
+				int qVal = matrix[q.x][q.y];
+				int rVal = matrix[r.x][r.y];
+				int e = pVal - (qVal+rVal)/2;
+				return e;
+			}
+			else
+				use_s_Pixel = true;
+
 		}
 		else if(predictor == "BL"){
-				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
-				//vedo se i pixel q ed r sono stati gi� scansionati
-				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
-					int pVal = matrix[actualPixel.x][actualPixel.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int e = pVal - (qVal+rVal)/2;
-					return e;
-				}
-				else
-					use_s_Pixel = true;
-		
+			Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
+			Pixel r = new Pixel(actualPixel.x, actualPixel.y-1);
+			//vedo se i pixel q ed r sono stati gi� scansionati
+			if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+				int pVal = matrix[actualPixel.x][actualPixel.y];
+				int qVal = matrix[q.x][q.y];
+				int rVal = matrix[r.x][r.y];
+				int e = pVal - (qVal+rVal)/2;
+				return e;
+			}
+			else
+				use_s_Pixel = true;
+
 		}
 		else if(predictor == "BR"){
-				Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
-				//vedo se i pixel q ed r sono stati gi� scansionati
-				if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
-					int pVal = matrix[actualPixel.x][actualPixel.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int e = pVal - (qVal+rVal)/2;
-					return e;
-				}
-				else
-					use_s_Pixel = true;
+			Pixel q = new Pixel(actualPixel.x+1, actualPixel.y);
+			Pixel r = new Pixel(actualPixel.x, actualPixel.y+1);
+			//vedo se i pixel q ed r sono stati gi� scansionati
+			if(scannedPixel.containsKey(q.x+"-"+ (q.y)) && scannedPixel.containsKey((r.x) +"-"+r.y)){
+				int pVal = matrix[actualPixel.x][actualPixel.y];
+				int qVal = matrix[q.x][q.y];
+				int rVal = matrix[r.x][r.y];
+				int e = pVal - (qVal+rVal)/2;
+				return e;
+			}
+			else
+				use_s_Pixel = true;
 
 		}
 
@@ -284,13 +284,13 @@ public class CompressSCAN {
 	}
 
 	private ArrayList<Integer> context(int matrix[][],ArrayList<Block> blocks, ArrayList<String> scanPaths){
-		
+
 		ArrayList<Integer> contexts = new ArrayList<Integer>();
 		ScanPaths s = new  ScanPaths();
 		Path path;
 		scannedPixel = new HashMap<String,String>();
 		for(int i =0; i < blocks.size(); i++){
-			
+
 			String scan = scanPaths.get(i);
 			if(scan.contains("(") || scan.contains(")")){
 				String[] scans= scan.split("[\\( | \\) | , ]");
@@ -303,7 +303,7 @@ public class CompressSCAN {
 					}
 				}
 				Block[] blockSplitted = Block.splitBlock(blocks.get(i));
-				
+
 				for(int c=0; c < p.length ; c++){
 					path = s.scanPath(matrix, blockSplitted[c], p[c]);
 					contexts.addAll(getContext(matrix,path,blocks.get(i)));
@@ -313,152 +313,22 @@ public class CompressSCAN {
 				contexts.addAll(getContext(matrix,path,blocks.get(i)));
 			}
 		}	
-		
+
 		return contexts;	
 	}
-	
+
 	private ArrayList<Integer> getContext(int matrix[][], Path path, Block block){
 
-		Pixel pixel,prevPixel = null;
-		String lastPredictorUsed = null;
+		Pixel pixel;
 
 		ArrayList<Integer> L = new ArrayList<Integer>();
 		for(int i=0; i < path.size(); i++){
 			pixel=path.getPixel(i);
 			if(first_pixel == null || second_pixel==null){
-				L.add(0);
-				scannedPixel.put(pixel.x+"-"+pixel.y, null);
-				if(path.startAngle.equals(ConstantsScan.NORTH_EAST))
-					lastPredictorUsed="UR";
-				else if(path.startAngle.equals(ConstantsScan.NORTH_WEST))
-					lastPredictorUsed="UL";
-				else if(path.startAngle.equals(ConstantsScan.SOUTH_WEST))
-					lastPredictorUsed="BL";
-				else if(path.startAngle.equals(ConstantsScan.SOUTH_EAST))
-					lastPredictorUsed="BR";
-				
-				if(first_pixel == null)
-					first_pixel = pixel;
-				else
-					second_pixel= pixel;
-				
-				prevPixel=pixel;
-				
+				L.add(0);				
 			}
-			else if(i == 0){ //Come faccio a capire la direzione (UL/UR/BL/BR) 
-				//al primo pixel? Vedo l'angolo di partenza
-				String startAngle = path.getStartAngle();
-				if(startAngle.equals(ConstantsScan.NORTH_EAST)){//UR {N,E}
-					int e = calcContext(pixel, "UR", matrix,block);
-					if(e>=0 && e<=2) 
-						L.add(0);
-					else if(e>=3 && e<=8)
-						L.add(1);
-					else if(e>=9 && e<=15)
-						L.add(2);
-					else
-						L.add(3);					
-					lastPredictorUsed = "UR";
-				}
-
-				else if(startAngle.equals(ConstantsScan.NORTH_WEST)){//UL {N,W}
-					int e = calcContext(pixel, "UL", matrix,block);
-					
-					if(e>=0 && e<=2) 
-						L.add(0);
-					else if(e>=3 && e<=8)
-						L.add(1);
-					else if(e>=9 && e<=15)
-						L.add(2);
-					else
-						L.add(3);
-					lastPredictorUsed = "UL";
-				}
-
-				else if(startAngle.equals(ConstantsScan.SOUTH_WEST)){//BL {S,W}
-					int e = calcContext(pixel,"BL", matrix,block);
-					
-					if(e>=0 && e<=2) 
-						L.add(0);
-					else if(e>=3 && e<=8)
-						L.add(1);
-					else if(e>=9 && e<=15)
-						L.add(2);
-					else
-						L.add(3);
-					lastPredictorUsed = "BL";
-				}
-				else if(startAngle.equals(ConstantsScan.SOUTH_EAST)){//BR {S,E}
-					int e = calcContext(pixel,"BR", matrix,block);
-					
-					if(e>=0 && e<=2) 
-						L.add(0);
-					else if(e>=3 && e<=8)
-						L.add(1);
-					else if(e>=9 && e<=15)
-						L.add(2);
-					else
-						L.add(3);
-					lastPredictorUsed = "BR";
-				}
-
-				scannedPixel.put(pixel.x+"-"+pixel.y, null);
-				prevPixel=pixel;
-
-			}
-			else{
-				int Xmove = pixel.x - prevPixel.x;
-				int Ymove = pixel.y - prevPixel.y;
-
-				String s = Xmove+";"+Ymove;
-				int e = 0;
-
-				if(s.equals("0;-1")){ //spostamento verso Ovest <-
-
-					if(lastPredictorUsed.startsWith("U")){
-						e = calcContext(pixel, "UR", matrix, block);
-					}
-					else{
-						e = calcContext(pixel, "BR", matrix, block);
-					}
-				}
-				else if(s.equals("1;0")){ //spostamento verso Sud
-					if(lastPredictorUsed.endsWith("R")){
-						e = calcContext(pixel, "UR", matrix, block);
-					}
-					else{
-						e = calcContext(pixel, "UL", matrix, block);
-					}
-				}
-				else if(s.equals("0;1")){ //spostamento verso Est ->
-					if(lastPredictorUsed.startsWith("U")){
-						e = calcContext(pixel, "UL", matrix, block);
-					}
-					else{
-						e = calcContext(pixel, "BL", matrix, block);
-					}
-				}
-				else if(s.equals("-1;0")){ //spostamento verso Nord
-					if(lastPredictorUsed.endsWith("R")){
-						e = calcContext(pixel, "BR", matrix, block);
-					}
-					else{
-						e = calcContext(pixel, "BL", matrix, block);
-					}
-				}
-				else if(s.equals("1;-1")){ //spostamento verso Sud-Ovest
-					e = calcContext(pixel, "UR", matrix, block);
-				}
-				else if(s.equals("1;1")){ //spostamento verso Sud-Est
-					e = calcContext(pixel, "UL", matrix, block);
-				}
-				else if(s.equals("-1;1")){ //spostamento verso Nord-Est
-					e = calcContext(pixel, "BL", matrix, block);
-				}
-				else if(s.equals("-1;-1")){ //spostamento verso Nord-Ovest
-					e = calcContext(pixel, "BR", matrix, block);
-				}
-
+			else{ 
+				int e = calcContext(pixel, pixel.getPredictor(), matrix,block);
 				if(e>=0 && e<=2) 
 					L.add(0);
 				else if(e>=3 && e<=8)
@@ -466,15 +336,14 @@ public class CompressSCAN {
 				else if(e>=9 && e<=15)
 					L.add(2);
 				else
-					L.add(3);
+					L.add(3);					
+			}
 
-				scannedPixel.put(pixel.x+"-"+pixel.y, null);
-				prevPixel = pixel;
-
-			}	
-
+			scannedPixel.put(pixel.x+"-"+pixel.y, null);
+			second_pixel = first_pixel;
+			first_pixel = pixel;
 		}
-
+		
 		return L;
 	}
 
@@ -571,11 +440,11 @@ public class CompressSCAN {
 		}
 
 		return -1;
-		
+
 	}
-	
+
 	private String encode(String scanpath, int blockSize){
-		
+
 		String scan = scanpath.replace(",", "");
 		if(scan.length() == 2 ){
 			String k = scan.substring(0,1);
@@ -584,14 +453,14 @@ public class CompressSCAN {
 				return "0"+code(k)+code(t);
 			else
 				return code(k)+code(t);
-			
+
 		}else{
 			String[] scans;
 			if(scanpath.contains("(") || scanpath.contains(")"))
 				scans = scanpath.split("[\\( | \\) | ,]");
 			else
 				scans = scanpath.split(",");
-			
+
 			String[] p = new String[4];
 			int i=0;
 			for(String s: scans){
@@ -600,12 +469,12 @@ public class CompressSCAN {
 					i++;
 				}
 			}
-			
+
 			return "1"+ encode(p[0],blockSize/2)+ encode(p[1],blockSize/2)
-					+encode(p[2],blockSize/2)+encode(p[3],blockSize/2);
+			+encode(p[2],blockSize/2)+encode(p[3],blockSize/2);
 		}
 	}
-	
+
 	private String code(String k){
 		if(k.equals("C")){
 			return "00";
@@ -627,15 +496,15 @@ public class CompressSCAN {
 			return null;
 		}
 	}
-	
+
 	private ArithmeticCodeOutput arithmeticCodingEncode(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts) throws IOException {
-		
+
 		ArrayList<Integer> buff0 = new ArrayList<Integer>();
 		ArrayList<Integer> buff1 = new ArrayList<Integer>();
 		ArrayList<Integer> buff2 = new ArrayList<Integer>();
 		ArrayList<Integer> buff3 = new ArrayList<Integer>();
 		ArrayList<byte[]> stream = new ArrayList<byte[]>();
-		
+
 		for(int i=0; i < contexts.size(); i++){
 			if(contexts.get(i) == 0)
 				buff0.add(predictionsError.get(i));
@@ -646,13 +515,13 @@ public class CompressSCAN {
 			else
 				buff3.add(predictionsError.get(i));
 		}
-		
-		
+
+
 		FlatFrequencyTable initFreqs = new FlatFrequencyTable(512);
 		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 		BitOutputStream bitOut=new BitOutputStream();
 		ArithmeticEncoder enc = new ArithmeticEncoder(bitOut);
-		
+
 		for(Integer symbol: buff0 ) {
 			symbol +=255;
 			enc.write(freqs, symbol);
@@ -671,7 +540,7 @@ public class CompressSCAN {
 		stream.add(bitOut.getByteStream());
 		bitOut=new BitOutputStream();
 
-		
+
 		for(Integer symbol: buff2 ) {
 			symbol +=255;
 			enc.write(freqs, symbol);
@@ -681,7 +550,7 @@ public class CompressSCAN {
 		stream.add(bitOut.getByteStream());
 		bitOut=new BitOutputStream();
 
-		
+
 		for(Integer symbol: buff3 ) {
 			symbol +=255;
 			enc.write(freqs, symbol);
@@ -689,16 +558,16 @@ public class CompressSCAN {
 		}
 		bitOut.close();
 		stream.add(bitOut.getByteStream());
-		
+
 		enc.write(freqs, 511);  // EOF
 		enc.finish();  // Flush remaining code bits
-		
+
 
 		ArithmeticCodeOutput output = new ArithmeticCodeOutput(stream, buff0.size(), buff1.size(), buff2.size(), buff3.size());
-		
+
 		DecompressSCAN decompressor = new DecompressSCAN();
 		ArrayList<Integer> list = decompressor.arithmeticCodingDecode(stream);
-		
+
 		int i =0;
 		for(; i < buff0.size(); i++)
 			if(list.get(i) != buff0.get(i))
@@ -712,11 +581,11 @@ public class CompressSCAN {
 		for(; i < buff3.size(); i++)
 			if(list.get(i) != buff0.get(i))
 				System.out.println("FAILED!!!!");
-		
-		
+
+
 		return output;
-		
+
 	}
 
-	
+
 }
