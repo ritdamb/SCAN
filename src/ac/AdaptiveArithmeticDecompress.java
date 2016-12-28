@@ -23,37 +23,39 @@ import java.io.OutputStream;
  */
 public class AdaptiveArithmeticDecompress {
 	
-	public static void main(String[] args) throws IOException {
+	public AdaptiveArithmeticDecompress(String inPath,String outPath) throws IOException {
 		// Handle command line arguments
-		if (args.length != 2) {
+		/*if (args.length != 2) {
 			System.err.println("Usage: java AdaptiveArithmeticDecompress InputFile OutputFile");
 			System.exit(1);
 			return;
-		}
-		File inputFile  = new File(args[0]);
-		File outputFile = new File(args[1]);
+		}*/
+		File inputFile  = new File(inPath);
+		File outputFile = new File(outPath);
 		
 		// Perform file decompression
 		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new FileInputStream(inputFile)))) {
 			try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
-				decompress(in, out);
+				//decompress(in, out);
 			}
 		}
 	}
 	
 	
 	// To allow unit testing, this method is package-private instead of private.
-	public static void decompress(BitInputStream in, OutputStream out) throws IOException {
+	public static void decompress(BitInputStream in, OutputStream out, int n) throws IOException {
 		FlatFrequencyTable initFreqs = new FlatFrequencyTable(257);
 		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 		ArithmeticDecoder dec = new ArithmeticDecoder(in);
-		while (true) {
+		int i =0;
+		while (i< n) {
 			// Decode and write one byte
 			int symbol = dec.read(freqs);
-			if (symbol == 256)  // EOF symbol
-				break;
+			//if (symbol == 256)  // EOF symbol
+				//break;
 			out.write(symbol);
 			freqs.increment(symbol);
+			i++;
 		}
 	}
 	

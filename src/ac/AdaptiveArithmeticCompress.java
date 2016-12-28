@@ -27,39 +27,41 @@ import java.io.InputStream;
  */
 public class AdaptiveArithmeticCompress {
 	
-	public static void main(String[] args) throws IOException {
+	public AdaptiveArithmeticCompress(String inPath ,String outPath) throws IOException {
 		// Handle command line arguments
-		if (args.length != 2) {
+		/*if (args.length != 2) {
 			System.err.println("Usage: java AdaptiveArithmeticCompress InputFile OutputFile");
 			System.exit(1);
 			return;
-		}
-		File inputFile  = new File(args[0]);
-		File outputFile = new File(args[1]);
+		}*/
+		File inputFile  = new File(inPath);
+		File outputFile = new File(outPath);
 		
 		// Perform file compression
 		try (InputStream in = new BufferedInputStream(new FileInputStream(inputFile))) {
 			try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))) {
-				compress(in, out);
+				//compress(in, out);
 			}
 		}
 	}
 	
 	
 	// To allow unit testing, this method is package-private instead of private.
-	public static void compress(InputStream in, BitOutputStream out) throws IOException {
+	public static void compress(InputStream in, BitOutputStream out, int n) throws IOException {
 		FlatFrequencyTable initFreqs = new FlatFrequencyTable(257);
 		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 		ArithmeticEncoder enc = new ArithmeticEncoder(out);
-		while (true) {
+		int i=0;
+		while (i < n) {
 			// Read and encode one byte
 			int symbol = in.read();
-			if (symbol == -1)
-				break;
+			//if (symbol == -1)
+				//break;
 			enc.write(freqs, symbol);
 			freqs.increment(symbol);
+			i++;
 		}
-		enc.write(freqs, 256);  // EOF
+		//enc.write(freqs, 256);  // EOF
 		enc.finish();  // Flush remaining code bits
 	}
 	

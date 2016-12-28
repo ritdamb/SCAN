@@ -51,7 +51,7 @@ public final class BitOutputStream implements AutoCloseable {
 	}
 	
 	public BitOutputStream(){
-		outputByte = new byte[263224];
+		outputByte = new byte[400960];
 		currentByte = 0;
 		numBitsFilled = 0;
 		i =0;

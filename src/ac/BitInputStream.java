@@ -30,6 +30,8 @@ public final class BitInputStream implements AutoCloseable {
 	
 	// Number of remaining bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsRemaining;
+	private byte[] inputByte;
+	private int i;
 	
 	
 	
@@ -48,6 +50,13 @@ public final class BitInputStream implements AutoCloseable {
 		numBitsRemaining = 0;
 	}
 	
+	public BitInputStream(byte[] in){
+		inputByte = in;
+		currentByte = 0;
+		numBitsRemaining = 0;
+		i =0;
+	}
+	
 	
 	
 	/*---- Methods ----*/
@@ -62,7 +71,12 @@ public final class BitInputStream implements AutoCloseable {
 		if (currentByte == -1)
 			return -1;
 		if (numBitsRemaining == 0) {
-			currentByte = input.read();
+			if(input !=null)
+				currentByte = input.read();
+			else{
+				currentByte =inputByte[i];
+				i++;
+			}
 			if (currentByte == -1)
 				return -1;
 			numBitsRemaining = 8;
@@ -95,7 +109,8 @@ public final class BitInputStream implements AutoCloseable {
 	 * @throws IOException if an I/O exception occurred
 	 */
 	public void close() throws IOException {
-		input.close();
+		if(input != null)
+			input.close();
 		currentByte = -1;
 		numBitsRemaining = 0;
 	}
