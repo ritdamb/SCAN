@@ -51,8 +51,8 @@ public class AdaptiveArithmeticDecompress {
 		while (i< n) {
 			// Decode and write one byte
 			int symbol = dec.read(freqs);
-			//if (symbol == 256)  // EOF symbol
-				//break;
+			if (symbol == 256)  // EOF symbol
+				break;
 			out.write(symbol);
 			freqs.increment(symbol);
 			i++;

@@ -11,6 +11,7 @@ public class Test {
 		compressor.compress();
 		
 		
+//		String s1 = String.format("%9s", Integer.toBinaryString(3)).replace(' ', '0');
 		
 		
 		

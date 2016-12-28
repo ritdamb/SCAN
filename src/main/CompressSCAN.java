@@ -582,11 +582,18 @@ public class CompressSCAN {
 			enc.finish(); // Flush remaining code bits
 			stream.add(out.getByteStream());
 		}*/
+		BitOutputStream writer = new BitOutputStream();
 		
+		for(int i=0; i < buff0.size(); i++){
+			String toWrite = String.format("%9s", Integer.toBinaryString(buff0.get(i))).replace(' ', '0');
+			for(int j=0; j < toWrite.length(); j++){
+				if(toWrite.charAt(j) == 0)
+					writer.write(0);
+				else writer.write(1);
+			}
+		}
 		
-		
-		System.out.println(buff0.toString());
-		ByteArrayInputStream in = new ByteArrayInputStream(buff0.toString().getBytes());
+		ByteArrayInputStream in = new ByteArrayInputStream(writer.getByteStream());
 		BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream("compress")));
 		AdaptiveArithmeticCompress.compress(in, out,buff0.size());
 				
@@ -597,18 +604,23 @@ public class CompressSCAN {
 		
 		byte[] byteArray = baos.toByteArray();
 		String string = new String(byteArray);
-		System.out.println(string);
+		int j=0;
+		String number="";
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for(int i=0; i < string.length(); i++){
+			if(j == 8){
+				list.add(Integer.parseUnsignedInt(number, 2));
+				number="";
+				j=0;
+			}
+			number+=string.charAt(j);
+			j++;
+		}
+		
+		System.out.println(buff0.toString());
+		
+		System.out.println(list.toString());
 
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		
 		/*
 		ArithmeticCodeOutput output = new ArithmeticCodeOutput(stream, buff0.size(), buff1.size(), buff2.size(),

@@ -55,13 +55,13 @@ public class AdaptiveArithmeticCompress {
 		while (i < n) {
 			// Read and encode one byte
 			int symbol = in.read();
-			//if (symbol == -1)
-				//break;
+			if (symbol == -1)
+				break;
 			enc.write(freqs, symbol);
 			freqs.increment(symbol);
 			i++;
 		}
-		//enc.write(freqs, 256);  // EOF
+		enc.write(freqs, 256);  // EOF
 		enc.finish();  // Flush remaining code bits
 	}
 	

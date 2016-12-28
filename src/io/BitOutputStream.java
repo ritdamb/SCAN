@@ -9,6 +9,7 @@ package io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -30,8 +31,7 @@ public final class BitOutputStream {
 	// Number of accumulated bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsFilled;
 	
-	private byte[] outputByte;
-	int i;
+	private ArrayList<Byte> outputByte;
 	
 	
 	
@@ -51,10 +51,9 @@ public final class BitOutputStream {
 	}
 	
 	public BitOutputStream(){
-		outputByte = new byte[100];
+		outputByte = new ArrayList<Byte>();
 		currentByte = 0;
 		numBitsFilled = 0;
-		i =0;
 	}
 	
 	
@@ -72,16 +71,15 @@ public final class BitOutputStream {
 		currentByte = (currentByte << 1) | b;
 		numBitsFilled++;
 		if (numBitsFilled == 8) {
-			if(output == null){
-				outputByte[i] = (byte) currentByte; 
-				i++;
-			}else output.write(currentByte);
+			if(output == null)
+				outputByte.add(((byte)currentByte)); 
+			else output.write(currentByte);
 			currentByte = 0;
 			numBitsFilled = 0;
 		}
 	}
 	
-	public byte[] getByteStream(){
+	public ArrayList<Byte> getByteStream(){
 		return outputByte;
 	}
 	
