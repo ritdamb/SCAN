@@ -168,6 +168,9 @@ public class Reader {
 		//MI MANCANO LE SEQUENZE DI CONTESTI
 		//E POI BISOGNA RICOSTRUIRE L'IMMAGINE
 		
+		//PEZZA
+		ArrayList<ArrayList<Integer>> buffersList = CompressSCAN.getBuffersList();
+		
 		
 		BufferedImage outputImage = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
         for(int k=0; k<size; k++) {
@@ -183,13 +186,5 @@ public class Reader {
 
 	}
 
-	public static void main(String[] args) {
-		Reader r = new Reader();
-		try {
-			r.ReadImage("compress");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 }

@@ -38,7 +38,7 @@ public class CompressSCAN {
 	private Pixel second_pixel;
 	private int[][] matrix;
 	private ArrayList<Block> blocks;
-	private ArrayList<ArrayList<Integer>> buffersList;
+	private static ArrayList<ArrayList<Integer>> buffersList;
 
 	public CompressSCAN(String pathInputFile, String pathOutFile) throws IOException {
 
@@ -88,7 +88,7 @@ public class CompressSCAN {
 
 	}
 	
-	private ArrayList<ArrayList<Integer>> getBuffersList(){
+	public static ArrayList<ArrayList<Integer>> getBuffersList(){
 		return buffersList;
 	}
 
