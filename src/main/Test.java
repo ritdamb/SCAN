@@ -9,7 +9,7 @@ public class Test {
 	 
 	public static void main(String[] args) throws IOException{
 	
-		CompressSCAN compressor = new CompressSCAN("lena512.bmp", "compress");
+		CompressSCAN compressor = new CompressSCAN("lena64.bmp", "compress");
 		compressor.compress(); // crea il file compress
 		
 		Reader r = new Reader();

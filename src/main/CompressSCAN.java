@@ -222,75 +222,68 @@ public class CompressSCAN {
 		return beo;
 	}
 
-	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, String predictor, int matrix[][], Block block) {
-
-		boolean use_s_Pixel = false;
-
-		if (predictor == "UR") {
-			Pixel q = new Pixel(actualPixel.x - 1, actualPixel.y);
-			Pixel r = new Pixel(actualPixel.x, actualPixel.y + 1);
-			// vedo se i pixel q ed r sono stati già scansionati
-			if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)) {
-				int pVal = matrix[actualPixel.x][actualPixel.y];
-				int qVal = matrix[q.x][q.y];
-				int rVal = matrix[r.x][r.y];
-				int e = pVal - (qVal + rVal) / 2;
-				return e;
-			} else
-				use_s_Pixel = true;
-
-		} else if (predictor == "UL") {
-			Pixel q = new Pixel(actualPixel.x - 1, actualPixel.y);
-			Pixel r = new Pixel(actualPixel.x, actualPixel.y - 1);
-			// vedo se i pixel q ed r sono stati gi� scansionati
-			if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)) {
-				int pVal = matrix[actualPixel.x][actualPixel.y];
-				int qVal = matrix[q.x][q.y];
-				int rVal = matrix[r.x][r.y];
-				int e = pVal - (qVal + rVal) / 2;
-				return e;
-			} else
-				use_s_Pixel = true;
-
-		} else if (predictor == "BL") {
-			Pixel q = new Pixel(actualPixel.x + 1, actualPixel.y);
-			Pixel r = new Pixel(actualPixel.x, actualPixel.y - 1);
-			// vedo se i pixel q ed r sono stati gi� scansionati
-			if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)) {
-				int pVal = matrix[actualPixel.x][actualPixel.y];
-				int qVal = matrix[q.x][q.y];
-				int rVal = matrix[r.x][r.y];
-				int e = pVal - (qVal + rVal) / 2;
-				return e;
-			} else
-				use_s_Pixel = true;
-
-		} else if (predictor == "BR") {
-			Pixel q = new Pixel(actualPixel.x + 1, actualPixel.y);
-			Pixel r = new Pixel(actualPixel.x, actualPixel.y + 1);
-			// vedo se i pixel q ed r sono stati gi� scansionati
-			if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)) {
-				int pVal = matrix[actualPixel.x][actualPixel.y];
-				int qVal = matrix[q.x][q.y];
-				int rVal = matrix[r.x][r.y];
-				int e = pVal - (qVal + rVal) / 2;
-				return e;
-			} else
-				use_s_Pixel = true;
-
+	private int[] predictionNeighbors(Pixel p, int matrix[][]){
+		int[] neighbors = new int[2]; 
+		if(p.getPredictor().equals("UR")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("UL")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BR")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y) ){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BL")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
 		}
 
-		if (use_s_Pixel) {
+		return neighbors;
+	}
+
+	
+	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, String predictor, int matrix[][], Block block) {
+
+		int[] neighbors = predictionNeighbors(actualPixel, matrix);
+		if (neighbors != null) {
+			return matrix[actualPixel.x][actualPixel.y] - ((neighbors[0] + neighbors[1]) / 2);
+		} else {
 			if (prevPixel == null) {
 				return 0;
 			}
 			int pVal = matrix[actualPixel.x][actualPixel.y];
 			int sVal = matrix[prevPixel.x][prevPixel.y];
-			int e = Math.abs(pVal - sVal);
+			int e = pVal - sVal;
 			return e;
 		}
 
-		return -1;
 	}
 
 	private ArrayList<Integer> context(int matrix[][], ArrayList<Block> blocks, ArrayList<String> scanPaths) {
@@ -360,140 +353,83 @@ public class CompressSCAN {
 		return L;
 	}
 
-	private int calcContext(Pixel actualPixel, String predictor, int[][] matrix, Block block) {
-		boolean use_uv_Pixel = false;
-
-		if (predictor == "UR") { // N,E,NE
-			if ((actualPixel.x - 1) >= block.getxStart() && (actualPixel.y + 1) <= block.getyEnd()) { // vedo
-																										// se
-																										// il
-																										// pixel
-																										// a
-																										// Nord
-																										// e
-																										// ad
-																										// Est
-																										// non
-																										// escono
-																										// fuori
-																										// dal
-																										// blocco
-				Pixel q = new Pixel(actualPixel.x - 1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y + 1);
-				Pixel s = new Pixel(actualPixel.x - 1, actualPixel.y + 1);
-				// vedo se i pixel q ed r sono stati gi� scansionati
-				if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)
-						&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-					int sVal = matrix[s.x][s.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int a = (Math.abs(qVal - rVal) + Math.abs(rVal - sVal)) / 2;
-					return a;
-				} else
-					use_uv_Pixel = true;
-			} else
-				use_uv_Pixel = true;
-		} else if (predictor == "UL") {// N,NW,W
-			if ((actualPixel.y - 1) >= block.getyStart() && (actualPixel.x - 1) >= block.getxStart()) { // vedo
-																										// se
-																										// il
-																										// pixel
-																										// a
-																										// Nord
-																										// e
-																										// ad
-																										// Ovest
-																										// non
-																										// escono
-																										// fuori
-																										// dal
-																										// blocco
-				Pixel q = new Pixel(actualPixel.x - 1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y - 1);
-				Pixel s = new Pixel(actualPixel.x - 1, actualPixel.y - 1);
-				// vedo se i pixel q ed r sono stati gi� scansionati
-				if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)
-						&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-					int sVal = matrix[s.x][s.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int a = (Math.abs(qVal - rVal) + Math.abs(rVal - sVal)) / 2;
-					return a;
-				} else
-					use_uv_Pixel = true;
-			} else
-				use_uv_Pixel = true;
-
-		} else if (predictor == "BL") {// S,SW,W
-			if ((actualPixel.y - 1) >= block.getyStart() && (actualPixel.x + 1) <= block.getxEnd()) { // vedo
-																										// se
-																										// il
-																										// pixel
-																										// a
-																										// Sud
-																										// e
-																										// ad
-																										// Ovest
-																										// non
-																										// escono
-																										// fuori
-																										// dal
-																										// blocco
-				Pixel q = new Pixel(actualPixel.x + 1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y - 1);
-				Pixel s = new Pixel(actualPixel.x + 1, actualPixel.y - 1);
-				// vedo se i pixel q ed r sono stati gi� scansionati
-				if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)
-						&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-					int sVal = matrix[s.x][s.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int a = (Math.abs(qVal - rVal) + Math.abs(rVal - sVal)) / 2;
-					return a;
-				} else
-					use_uv_Pixel = true;
-			} else
-				use_uv_Pixel = true;
-		} else if (predictor == "BR") {// S,SE,E
-			if ((actualPixel.y + 1) <= block.getyEnd() && (actualPixel.x + 1) <= block.getxEnd()) { // vedo
-																									// se
-																									// il
-																									// pixel
-																									// a
-																									// Sud
-																									// e
-																									// ad
-																									// Est
-																									// non
-																									// escono
-																									// fuori
-																									// dalla
-																									// matrice
-				Pixel q = new Pixel(actualPixel.x + 1, actualPixel.y);
-				Pixel r = new Pixel(actualPixel.x, actualPixel.y + 1);
-				Pixel s = new Pixel(actualPixel.x + 1, actualPixel.y + 1);
-				// vedo se i pixel q ed r sono stati gi� scansionati
-				if (scannedPixel.containsKey(q.x + "-" + (q.y)) && scannedPixel.containsKey((r.x) + "-" + r.y)
-						&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-					int sVal = matrix[s.x][s.y];
-					int qVal = matrix[q.x][q.y];
-					int rVal = matrix[r.x][r.y];
-					int a = (Math.abs(qVal - rVal) + Math.abs(rVal - sVal)) / 2;
-					return a;
-				} else
-					use_uv_Pixel = true;
-			} else
-				use_uv_Pixel = true;
+	private int[] contextNeighbors(Pixel p, int matrix[][]){
+		int[] neighbors = new int[3]; 
+		if(p.getPredictor().equals("UR")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(-1, 1);
+			Pixel s = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("UL")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(-1, -1);
+			Pixel s = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BR")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(1, 1);
+			Pixel s = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BL")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(1, -1);
+			Pixel s = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
 		}
 
-		if (use_uv_Pixel) {
+		return neighbors;
+	}
+
+	private int calcContext(Pixel actualPixel, String predictor, int[][] matrix, Block block) {
+
+		int[] neighbors = contextNeighbors(actualPixel, matrix);
+		if (neighbors != null)
+			return (Math.abs(neighbors[0] - neighbors[1]) + Math.abs(neighbors[1] - neighbors[2])) / 2;
+		else {
 			int uVal = matrix[u_pixel.x][u_pixel.y];
 			int vVal = matrix[v_pixel.x][v_pixel.y];
 			int e = Math.abs(uVal - vVal);
 			return e;
 		}
-
-		return -1;
 
 	}
 
