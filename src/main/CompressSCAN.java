@@ -34,8 +34,9 @@ import scanpaths.ScanPaths;
 public class CompressSCAN {
 
 	private HashMap<String, String> scannedPixel;
-	private Pixel first_pixel;
-	private Pixel second_pixel;
+	private Pixel u_pixel;
+	private Pixel v_pixel;
+	private int first_pixel, second_pixel;
 	private int[][] matrix;
 	private ArrayList<Block> blocks;
 	private static ArrayList<ArrayList<Integer>> buffersList;
@@ -43,8 +44,8 @@ public class CompressSCAN {
 	public CompressSCAN(String pathInputFile, String pathOutFile) throws IOException {
 
 		scannedPixel = new HashMap<String, String>();
-		first_pixel = null;
-		second_pixel = null;
+		u_pixel = null;
+		v_pixel = null;
 		matrix = loadImage(ImageIO.read(new File(pathInputFile)));
 		blocks = Block.getBlocks(matrix, ConstantsScan.blockSize);
 	}
@@ -58,7 +59,7 @@ public class CompressSCAN {
 		for (int i = 0; i < blocks.size(); i++) {
 
 			BestPathOutput bpo = BestPath(matrix, blocks.get(i), lastPixel);
-
+			
 			lastPixel = bpo.getLastPixel();
 			predictionsError.addAll(bpo.getL());
 			scanPaths.add(bpo.getBestPathName());
@@ -81,9 +82,8 @@ public class CompressSCAN {
 		
 		// scrivo i byte nel file
 		Writer writer = new Writer();
-		int p1 = matrix[first_pixel.x][first_pixel.y];
-		int p2 = matrix[second_pixel.x][second_pixel.y];
-		writer.writeImage(matrix.length, encodeScanPaths, p1, p2, buffersList.get(0).size(), buffersList.get(1).size(),
+		
+		writer.writeImage(matrix.length, encodeScanPaths, first_pixel, second_pixel, buffersList.get(0).size(), buffersList.get(1).size(),
 				buffersList.get(2).size(), buffersList.get(3).size(), "010101010");
 
 	}
@@ -334,8 +334,12 @@ public class CompressSCAN {
 		ArrayList<Integer> L = new ArrayList<Integer>();
 		for (int i = 0; i < path.size(); i++) {
 			pixel = path.getPixel(i);
-			if (first_pixel == null || second_pixel == null) {
+			if (u_pixel == null || v_pixel == null) {
 				L.add(0);
+				if(u_pixel == null)
+					first_pixel = matrix[pixel.x][pixel.y];
+				else
+					second_pixel = matrix[pixel.x][pixel.y];
 			} else {
 				int e = calcContext(pixel, pixel.getPredictor(), matrix, block);
 				if (e >= 0 && e <= 2)
@@ -349,8 +353,8 @@ public class CompressSCAN {
 			}
 
 			scannedPixel.put(pixel.x + "-" + pixel.y, null);
-			second_pixel = first_pixel;
-			first_pixel = pixel;
+			v_pixel = u_pixel;
+			u_pixel = pixel;
 		}
 
 		return L;
@@ -483,8 +487,8 @@ public class CompressSCAN {
 		}
 
 		if (use_uv_Pixel) {
-			int uVal = matrix[first_pixel.x][first_pixel.y];
-			int vVal = matrix[second_pixel.x][second_pixel.y];
+			int uVal = matrix[u_pixel.x][u_pixel.y];
+			int vVal = matrix[v_pixel.x][v_pixel.y];
 			int e = Math.abs(uVal - vVal);
 			return e;
 		}

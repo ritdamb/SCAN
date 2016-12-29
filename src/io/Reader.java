@@ -8,19 +8,24 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
 import main.CompressSCAN;
 import model.Block;
 import model.Path;
+import model.Pixel;
 import scanpaths.ConstantsScan;
 import scanpaths.ScanPaths;
 
 public class Reader {
-
+	
+	HashMap<String, String> scannedPixel; 
+	
 	public Reader() {
 		super();
+		scannedPixel = new HashMap<String, String>();
 	}
 
 	public void ReadImage(String path) throws IOException{
@@ -171,19 +176,200 @@ public class Reader {
 		//PEZZA
 		ArrayList<ArrayList<Integer>> buffersList = CompressSCAN.getBuffersList();
 		
+		int index0 = 2;
+		int index1 = 0;
+		int index2 = 0;
+		int index3 = 0;
+		int v = pixel1;
+		int u = pixel2;
+		
+		
+		try {
+			for (int a=0; a < pathSequence.size(); a++){
+				ArrayList<Pixel> p = pathSequence.get(a).getPath();
+				Pixel actualPixel;
+				int b = 0;
+				if(a == 0){
+					matrix[p.get(0).x][p.get(0).y] = pixel1;
+					matrix[p.get(1).x][p.get(1).y] = pixel2;
+					scannedPixel.put(p.get(0).x + "-" + p.get(0).y, null);
+					scannedPixel.put(p.get(1).x + "-" + p.get(1).y, null);
+					b = 2;
+					
+				}
+				for ( ;b < p.size(); b++){
+					int[] neighbors;
+					actualPixel = p.get(b);
+					int predErr, e;
+					if( (neighbors = contextNeighbors(actualPixel, matrix)) != null)
+						e = (Math.abs(neighbors[0] - neighbors[1]) + Math.abs(neighbors[1] - neighbors[2])) / 2;
+					else
+						e = Math.abs(u-v);
+					
+					if (e >= 0 && e <= 2)
+						predErr = buffersList.get(0).get(index0++);
+					else if (e >= 3 && e <= 8)
+						predErr = buffersList.get(1).get(index1++);
+					else if (e >= 9 && e <= 15)
+						predErr = buffersList.get(2).get(index2++);
+					else
+						predErr = buffersList.get(3).get(index3++);
+						
+					int[] predictionNeighbors = predictionNeighbors(actualPixel, matrix);
+					int pixelVal;
+					if(predictionNeighbors != null)
+						pixelVal = predErr + (predictionNeighbors[0] +  predictionNeighbors[1])/2;
+					else
+						pixelVal = Math.abs(predErr + u);//TOGLIERE ABS
+					if(pixelVal < 0){
+						System.out.println(predictionNeighbors[0] + " - " + predictionNeighbors[1]);
+						System.out.println("PredErr="+predErr);
+					}
+					
+					matrix[actualPixel.x][actualPixel.y] = pixelVal;
+					
+					v = u;
+					u = pixelVal;
+					scannedPixel.put(actualPixel.x + "-" + actualPixel.y, null);
+						
+				}
+				
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		
 		BufferedImage outputImage = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
-        for(int k=0; k<size; k++) {
+		
+		for(int k=0; k<size; k++) {
             for(int j=0; j<size; j++) {
                 int a = matrix[k][j];
+                if(a > 255 || a < 0)
+                	System.out.println("pixelVal="+a);
                 Color newColor = new Color(a, a, a);
                 outputImage.setRGB(k,j,newColor.getRGB());
             }
         }
-        File output = new File("64x64.bmp");
+        File output = new File("output.bmp");
         ImageIO.write(outputImage, "bmp", output);
 
 
+	}
+	
+	
+	private int[] contextNeighbors(Pixel p, int matrix[][]){
+		int[] neighbors = new int[3]; 
+		if(p.getPredictor().equals("UR")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(-1, 1);
+			Pixel s = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("UL")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(-1, -1);
+			Pixel s = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BR")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(1, 1);
+			Pixel s = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BL")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(1, -1);
+			Pixel s = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
+					scannedPixel.containsKey(r.x + "-" + r.y) && 
+					scannedPixel.containsKey(s.x + "-" + s.y)
+					){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+				neighbors[2] = matrix[s.x][s.y];
+			}
+			else
+				return null;
+		}
+
+		return neighbors;
+	}
+	
+	private int[] predictionNeighbors(Pixel p, int matrix[][]){
+		int[] neighbors = new int[2]; 
+		if(p.getPredictor().equals("UR")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("UL")){
+			Pixel q = p.transform(-1, 0);
+			Pixel r = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BR")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(0, 1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y) ){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+		else if(p.getPredictor().equals("BL")){
+			Pixel q = p.transform(1, 0);
+			Pixel r = p.transform(0, -1);
+			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+				neighbors[0] = matrix[q.x][q.y];
+				neighbors[1] = matrix[r.x][r.y];
+			}
+			else
+				return null;
+		}
+
+		return neighbors;
 	}
 
 
