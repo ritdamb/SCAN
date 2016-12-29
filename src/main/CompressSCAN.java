@@ -20,8 +20,8 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
-
 import ac.*;
+import io.Writer;
 import model.ArithmeticCodeOutput;
 import model.BestPathOutput;
 import model.Block;
@@ -38,6 +38,7 @@ public class CompressSCAN {
 	private Pixel second_pixel;
 	private int[][] matrix;
 	private ArrayList<Block> blocks;
+	private ArrayList<ArrayList<Integer>> buffersList;
 
 	public CompressSCAN(String pathInputFile, String pathOutFile) throws IOException {
 
@@ -74,12 +75,21 @@ public class CompressSCAN {
 			encodeScanPaths += encode(scan, ConstantsScan.blockSize);
 
 		// arithmetic coding
+		// arithmeticCoding(predictionsError, contexts);
 
-		ArithmeticCodeOutput out =arithmeticCodingEncode(predictionsError,contexts);
-
-		//AdaptiveArithmeticCompress compress = new AdaptiveArithmeticCompress("buff.txt", "compress");
-		//AdaptiveArithmeticDecompress decompress = new AdaptiveArithmeticDecompress("compress", "buffOut.txt");
+		buffersList = arithmeticCodingEncode(predictionsError, contexts);
 		
+		// scrivo i byte nel file
+		Writer writer = new Writer();
+		int p1 = matrix[first_pixel.x][first_pixel.y];
+		int p2 = matrix[second_pixel.x][second_pixel.y];
+		writer.writeImage(matrix.length, encodeScanPaths, p1, p2, buffersList.get(0).size(), buffersList.get(1).size(),
+				buffersList.get(2).size(), buffersList.get(3).size(), "010101010");
+
+	}
+	
+	private ArrayList<ArrayList<Integer>> getBuffersList(){
+		return buffersList;
 	}
 
 	private int[][] loadImage(BufferedImage image) {
@@ -537,18 +547,16 @@ public class CompressSCAN {
 		}
 	}
 
-	private ArithmeticCodeOutput arithmeticCodingEncode(ArrayList<Integer> predictionsError,
+	private ArrayList<ArrayList<Integer>> arithmeticCodingEncode(ArrayList<Integer> predictionsError,
 			ArrayList<Integer> contexts) throws IOException {
-		
-		
+
 		ArrayList<ArrayList<Integer>> listBuffers = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Integer> buff0 = new ArrayList<Integer>();
 		ArrayList<Integer> buff1 = new ArrayList<Integer>();
 		ArrayList<Integer> buff2 = new ArrayList<Integer>();
 		ArrayList<Integer> buff3 = new ArrayList<Integer>();
-		ArrayList<byte[]> stream = new ArrayList<byte[]>();
-		
-		
+		ArrayList<Integer> list = new ArrayList<Integer>();
+
 		for (int i = 0; i < contexts.size(); i++) {
 			if (contexts.get(i) == 0)
 				buff0.add(predictionsError.get(i));
@@ -559,98 +567,188 @@ public class CompressSCAN {
 			else
 				buff3.add(predictionsError.get(i));
 		}
-		
+
 		listBuffers.add(buff0);
 		listBuffers.add(buff1);
 		listBuffers.add(buff2);
 		listBuffers.add(buff3);
-		
+
 		/*
-		//effettuo l'encoding dei buffer
-		for(ArrayList<Integer> buff : listBuffers){
-			FlatFrequencyTable initFreqs = new FlatFrequencyTable(513);
-			FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
-			BitOutputStream out = new BitOutputStream();
-			ArithmeticEncoder enc = new ArithmeticEncoder(out);
-			for (Integer symbol : buff ) {
-				symbol += 255;
-				enc.write(freqs, symbol);
-				freqs.increment(symbol);
-			}
-			
-			enc.write(freqs, 512); // EOF
-			enc.finish(); // Flush remaining code bits
-			stream.add(out.getByteStream());
-		}*/
+		 * //effettuo l'encoding dei buffer for(ArrayList<Integer> buff :
+		 * listBuffers){ FlatFrequencyTable initFreqs = new
+		 * FlatFrequencyTable(513); FrequencyTable freqs = new
+		 * SimpleFrequencyTable(initFreqs); BitOutputStream out = new
+		 * BitOutputStream(); ArithmeticEncoder enc = new
+		 * ArithmeticEncoder(out); for (Integer symbol : buff ) { symbol += 255;
+		 * enc.write(freqs, symbol); freqs.increment(symbol); }
+		 * 
+		 * enc.write(freqs, 512); // EOF enc.finish(); // Flush remaining code
+		 * bits stream.add(out.getByteStream()); }
+		 */
+		/*
 		BitOutputStream writer = new BitOutputStream();
-		
-		for(int i=0; i < buff0.size(); i++){
+		// intero -> string binaria
+		for (int i = 0; i < buff0.size(); i++) {
 			String toWrite = String.format("%9s", Integer.toBinaryString(buff0.get(i))).replace(' ', '0');
-			for(int j=0; j < toWrite.length(); j++){
-				if(toWrite.charAt(j) == 0)
+			for (int j = 0; j < toWrite.length(); j++) {
+				if (toWrite.charAt(j) == '0')
 					writer.write(0);
-				else writer.write(1);
+				else
+					writer.write(1);
 			}
 		}
-		
+
 		ByteArrayInputStream in = new ByteArrayInputStream(writer.getByteStream());
 		BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream("compress")));
-		AdaptiveArithmeticCompress.compress(in, out,buff0.size());
-				
-		
+		AdaptiveArithmeticCompress.compress(in, out, buff0.size());
+
 		BitInputStream ind = new BitInputStream(new BufferedInputStream(new FileInputStream("compress")));
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		AdaptiveArithmeticDecompress.decompress(ind, baos,buff0.size());
-		
+		AdaptiveArithmeticDecompress.decompress(ind, baos, buff0.size());
+
 		byte[] byteArray = baos.toByteArray();
-		String string = new String(byteArray);
-		int j=0;
-		String number="";
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		for(int i=0; i < string.length(); i++){
-			if(j == 8){
-				list.add(Integer.parseUnsignedInt(number, 2));
-				number="";
-				j=0;
-			}
-			number+=string.charAt(j);
-			j++;
+		String stream = "";
+
+		for (int i = 0; i < byteArray.length; i++)
+			stream += String.format("%8s", Integer.toBinaryString(byteArray[i])).replace(' ', '0');
+
+		int i = 0, j = 9;
+		while (j <= stream.length()) {
+			String bytes = stream.substring(i, j);
+			int n = Integer.parseUnsignedInt(bytes, 2);
+			list.add(n);
+			i += 9;
+			j += 9;
 		}
-		
+
 		System.out.println(buff0.toString());
-		
-		System.out.println(list.toString());
 
-		
+		System.out.println(list.toString());*/
+
 		/*
-		ArithmeticCodeOutput output = new ArithmeticCodeOutput(stream, buff0.size(), buff1.size(), buff2.size(),
-				buff3.size());
+		 * ArithmeticCodeOutput output = new ArithmeticCodeOutput(stream,
+		 * buff0.size(), buff1.size(), buff2.size(), buff3.size());
+		 * 
+		 * 
+		 * //decompression test DecompressSCAN decompressor = new
+		 * DecompressSCAN(); ArrayList<ArrayList<Integer>> list =
+		 * decompressor.arithmeticCodingDecode(stream);
+		 * 
+		 * int i=0;
+		 * 
+		 * while(i< 3){ ArrayList<Integer> deBuff = list.get(i);
+		 * ArrayList<Integer> enBuff = listBuffers.get(i);
+		 * 
+		 * if(deBuff.size() != enBuff.size()){ System.out.println(
+		 * "Size diverse a "+ i); break; } for(int j=0; j < deBuff.size(); j++ )
+		 * if(deBuff.get(j)!= enBuff.get(j)){ System.out.println("DIVERSI "+j +
+		 * " di "+i); break; }
+		 * 
+		 * i++; }
+		 */
+
+		return listBuffers;
+
+	}
+
+	private ArithmeticCodeOutput arithmeticCoding(ArrayList<Integer> predictionsError,
+			ArrayList<Integer> contexts) {
+		ArrayList<int[]> frequency = new ArrayList<int[]>();
+
+		String[] buffers = new String[4]; //buffer di stringhe binarie codificate
+		double[] lowerbound = new double[4];
+		double[] highbound = new double[4];
+		int[] scale = new int[4];
+		int[] n = new int[4]; // dimensione dei buffer
+		double [] total = new double[4]; // totale da codificare, necessario per il calcolo della frequenza
 
 		
-		//decompression test
-		DecompressSCAN decompressor = new DecompressSCAN();
-		ArrayList<ArrayList<Integer>> list = decompressor.arithmeticCodingDecode(stream);
+		//inizializzazione variabili
+		for (int i = 0; i < 4; i++) {
+			buffers[i] = "";
+			lowerbound[i] = 0;
+			highbound[i] = 1;
+			scale[i] = 0;
+			n[i]=0;
+			total[i] = 511;
+			int[] f = new int[512];
+			for (int j = 0; j < 512; j++)
+				f[j] = 1;
+			frequency.add(f);
+		}
 
-		int i=0;
 		
-		while(i< 3){
-			ArrayList<Integer> deBuff = list.get(i);
-			ArrayList<Integer> enBuff = listBuffers.get(i);
+		int c = -1;
+		for (int index=0; index < predictionsError.size(); index++ ) {//per ogni errore e
 			
-			if(deBuff.size() != enBuff.size()){
-				System.out.println("Size diverse a "+ i);
-				break;
-			}
-			for(int j=0; j < deBuff.size(); j++ )
-				if(deBuff.get(j)!= enBuff.get(j)){
-					System.out.println("DIVERSI "+j +" di "+i);
+			int e = predictionsError.get(index);
+			c = contexts.get(index);
+
+			double range = highbound[c] - lowerbound[c];
+
+			double occurrence = 0;
+			for (int j = -255; j <= e - 1; j++) //calcolo l'occorenze
+				occurrence += frequency.get(c)[j + 255];
+
+			double lower = lowerbound[c] + range * (occurrence / total[c]); //lowebound
+
+			occurrence = 0;
+			for (int j = -255; j <= e; j++)
+				occurrence += frequency.get(c)[j + 255];
+
+			double high = lowerbound[c] + range * (occurrence / total[c]);// upperbound
+
+			lowerbound[c] = lower;
+			highbound[c] = high;
+
+			//codifica
+			while (true) { 
+				if (highbound[c] < 0.5) {
+					buffers[c] += "0";
+					if (scale[c] != 0)
+						for (int i = 0; i < scale[c]; i++)
+							buffers[c] += "1";
+					lowerbound[c] = 2 * lowerbound[c];
+					highbound[c] = 2 * highbound[c];
+					n[c]+=scale[c]+1;
+					scale[c] = 0;
+				} else if (lowerbound[c] >= 0.5) {
+					buffers[c] += "1";
+					if (scale[c] != 0)
+						for (int i = 0; i < scale[c]; i++)
+							buffers[c] += "0";
+					lowerbound[c] = 2 * (lowerbound[c] - 0.5);
+					highbound[c] = 2 * (highbound[c] - 0.5);
+					n[c]+=scale[c]+1;
+					scale[c] = 0;
+				} else if (lowerbound[c] >= 0.25 && highbound[c] < 0.75) {
+					lowerbound[c] = 2 * (lowerbound[c] - 0.25);
+					highbound[c] = 2 * (highbound[c] - 0.25);
+					scale[c]++;
+				} else
 					break;
-				}
-			
-			i++;
-		}*/
-		
+			}
 
+			frequency.get(c)[e]++;
+			total[c]++;
+		}
+
+		for (int i = 0; i < 4; i++) {
+			
+			// "output binary form of L(i) with scale(i) 1 after first bit into buffers(i)"
+			String lower = Long.toBinaryString(Double.doubleToRawLongBits(lowerbound[i]));
+			String tmp="";
+			for (int j = 0; j < scale[c]; j++)
+				tmp += "1";
+			String toSave = lower.charAt(0) + tmp + lower.substring(1,lower.length());
+			buffers[i]+=toSave;
+			
+			n[i] += scale[i]+ toSave.length();
+		}
+
+		//out buffers and size n
+		//ArithmeticCodeOutput output = new ArithmeticCodeOutput();
+		
 		return null;
 
 	}
