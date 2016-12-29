@@ -14,7 +14,7 @@ public class Writer {
 		
 		//calcolo N
 		int n = (int) (Math.log(size) / Math.log(2));
-		String encodedSize =  Integer.toString(n-1,2);
+		String encodedSize =  Integer.toString(n-2,2);
 		if(encodedSize.length() == 1)
 			encodedSize = "00"+encodedSize;
 		if(encodedSize.length() == 2)
