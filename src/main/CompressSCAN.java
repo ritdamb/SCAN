@@ -53,7 +53,8 @@ public class CompressSCAN {
 	public void compress() throws IOException {
 		// scanning and prediction
 		Pixel lastPixel = null;
-		ArrayList<String> scanPaths = new ArrayList<String>();
+		ArrayList<String> scanPathsName = new ArrayList<String>();
+		ArrayList<Path> scanPaths= new ArrayList<Path>();
 		ArrayList<Integer> predictionsError = new ArrayList<Integer>();
 
 		for (int i = 0; i < blocks.size(); i++) {
@@ -62,17 +63,18 @@ public class CompressSCAN {
 			
 			lastPixel = bpo.getLastPixel();
 			predictionsError.addAll(bpo.getL());
-			scanPaths.add(bpo.getBestPathName());
+			scanPathsName.add(bpo.getBestPathName());
+			scanPaths.add(bpo.getBestPath());
 
 		}
 		// contextmodeling
 
-		ArrayList<Integer> contexts = context(matrix, blocks, scanPaths);
+		ArrayList<Integer> contexts = context(matrix, scanPaths);
 
 		// scanPath encode
 
 		String encodeScanPaths = "";
-		for (String scan : scanPaths)
+		for (String scan : scanPathsName)
 			encodeScanPaths += encode(scan, ConstantsScan.blockSize);
 
 		// arithmetic coding
@@ -103,7 +105,6 @@ public class CompressSCAN {
 				// System.out.println("Pixel [" + xPixel + "," + yPixel + "]: "
 				// + (color & 0xFF) );
 				matrix[x][y] = color & 0xFF;
-
 			}
 		}
 		return matrix;
@@ -112,34 +113,24 @@ public class CompressSCAN {
 	private BestPathOutput BestPath(int matrix[][], Block block, Pixel prevLastPixel) {
 		BestPathOutput bpo = new BestPathOutput();
 		ScanPaths s = new ScanPaths();
-		char[] k = new char[] { 'C', 'O' };
+		char[] k = new char[] { 'C', 'D', 'O', 'S' };
 		int t;
 		String minScanKT = "";
-		int minError = 0;
+		int minError = -1;
 		ArrayList<Integer> listOfPrediction = null;
-		Path path;
+		Path path, bestPath = null;
 		BlockErrorOutput beo;
 
 		for (int i = 0; i < k.length; i++) {
 			for (t = 0; t < ConstantsScan.maxDirectionScan; t++) {
-				if (k[i] == 'C' && t == 0) { // se � la prima volta che
-												// calcolo l'errore allora �
-												// l'errore minimo
-					path = s.scanPath(matrix, block, "" + k[0] + t);
-					beo = BlockError(matrix, path, prevLastPixel, block);
-					minScanKT = "" + k[0] + t;
-					minError = beo.getE();
-					listOfPrediction = beo.getL();
-
-					continue;
-				}
-
+				
 				path = s.scanPath(matrix, block, "" + k[i] + t);
-				beo = BlockError(matrix, path, prevLastPixel, block);
+				beo = BlockError(matrix, path, prevLastPixel);
 
-				if (beo.getE() < minError) {
+				if (beo.getE() < minError || minError == -1) {
 					minError = beo.getE();
 					minScanKT = "" + k[i] + t;
+					bestPath = path;
 					listOfPrediction = beo.getL();
 					bpo.setLastPixel(path.getPath().get(path.getPath().size() - 1));
 				}
@@ -168,12 +159,18 @@ public class CompressSCAN {
 
 			if ((minError + B) <= errorTotalSum + totalBit) {
 				bpo.setBestPathName(minScanKT);
+				bpo.setBestPath(bestPath);
 				bpo.setE(minError);
 				bpo.setB(B);
 				bpo.setL(listOfPrediction);
 			} else {
 				bpo.setBestPathName("(" + bpo1.getBestPathName() + "," + bpo2.getBestPathName() + ","
 						+ bpo3.getBestPathName() + "," + bpo4.getBestPathName() + ")");
+				bestPath = bpo1.getBestPath();
+				bestPath.getPath().addAll(bpo2.getBestPath().getPath());
+				bestPath.getPath().addAll(bpo3.getBestPath().getPath());
+				bestPath.getPath().addAll(bpo4.getBestPath().getPath());
+				bpo.setBestPath(bestPath);
 				bpo.setE(errorTotalSum);
 				bpo.setB(totalBit);
 				bpo.setL(predErrTotal);
@@ -182,6 +179,7 @@ public class CompressSCAN {
 		} else {
 
 			bpo.setBestPathName(minScanKT);
+			bpo.setBestPath(bestPath);
 			bpo.setE(minError);
 			bpo.setB(B);
 			bpo.setL(listOfPrediction);
@@ -190,7 +188,7 @@ public class CompressSCAN {
 		return bpo;
 	}
 
-	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel, Block block) {
+	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel) {
 
 		Pixel pixel; // prevPixel sarebbe il nostro pixel s
 		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of
@@ -201,13 +199,13 @@ public class CompressSCAN {
 		// PrevLastPixel che è l'ultimo dello scanpath precendente
 		// poi invece prendo il pixel precedente (i-1)
 		pixel = path.getPixel(0);
-		int err = calcPredictionErr(pixel, PrevLastPixel, pixel.predictor, matrix, block);
+		int err = calcPredictionErr(pixel, PrevLastPixel, matrix);
 		L.add(err);
 		scannedPixel.put(pixel.x + "-" + pixel.y, null);
 
 		for (int i = 1; i < path.size(); i++) {
 			pixel = path.getPixel(i);
-			int e = calcPredictionErr(pixel, path.getPixel(i - 1), pixel.predictor, matrix, block);
+			int e = calcPredictionErr(pixel, path.getPixel(i - 1), matrix);
 			L.add(e);
 			scannedPixel.put(pixel.x + "-" + pixel.y, null);
 		}
@@ -269,7 +267,7 @@ public class CompressSCAN {
 	}
 
 	
-	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, String predictor, int matrix[][], Block block) {
+	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, int matrix[][]) {
 
 		int[] neighbors = predictionNeighbors(actualPixel, matrix);
 		if (neighbors != null) {
@@ -286,72 +284,41 @@ public class CompressSCAN {
 
 	}
 
-	private ArrayList<Integer> context(int matrix[][], ArrayList<Block> blocks, ArrayList<String> scanPaths) {
-
-		ArrayList<Integer> contexts = new ArrayList<Integer>();
-		ScanPaths s = new ScanPaths();
-		Path path;
-		scannedPixel = new HashMap<String, String>();
-		for (int i = 0; i < blocks.size(); i++) {
-
-			String scan = scanPaths.get(i);
-			if (scan.contains("(") || scan.contains(")")) {
-				String[] scans = scan.split("[\\( | \\) | , ]");
-				String[] p = new String[4];
-				int j = 0;
-				for (String sc : scans) {
-					if (sc.length() != 0) {
-						p[j] = sc;
-						j++;
-					}
-				}
-				Block[] blockSplitted = Block.splitBlock(blocks.get(i));
-
-				for (int c = 0; c < p.length; c++) {
-					path = s.scanPath(matrix, blockSplitted[c], p[c]);
-					contexts.addAll(getContext(matrix, path, blocks.get(i)));
-				}
-			} else {
-				path = s.scanPath(matrix, blocks.get(i), scan);
-				contexts.addAll(getContext(matrix, path, blocks.get(i)));
-			}
-		}
-
-		return contexts;
-	}
-
-	private ArrayList<Integer> getContext(int matrix[][], Path path, Block block) {
-
-		Pixel pixel;
+	private ArrayList<Integer> context(int matrix[][], ArrayList<Path> scanPaths) {
 
 		ArrayList<Integer> L = new ArrayList<Integer>();
-		for (int i = 0; i < path.size(); i++) {
-			pixel = path.getPixel(i);
-			if (u_pixel == null || v_pixel == null) {
-				L.add(0);
-				if(u_pixel == null)
-					first_pixel = matrix[pixel.x][pixel.y];
-				else
-					second_pixel = matrix[pixel.x][pixel.y];
-			} else {
-				int e = calcContext(pixel, pixel.getPredictor(), matrix, block);
-				if (e >= 0 && e <= 2)
+		Pixel pixel;
+		scannedPixel = new HashMap<String, String>();
+		for (Path p : scanPaths){
+			for (int i = 0; i < p.size(); i++) {
+				pixel = p.getPixel(i);
+				if (u_pixel == null || v_pixel == null) {
 					L.add(0);
-				else if (e >= 3 && e <= 8)
-					L.add(1);
-				else if (e >= 9 && e <= 15)
-					L.add(2);
-				else
-					L.add(3);
+					if(v_pixel == null)
+						first_pixel = matrix[pixel.x][pixel.y];
+					else
+						second_pixel = matrix[pixel.x][pixel.y];
+				} else {
+					int e = calcContext(pixel, matrix);
+					if (e >= 0 && e <= 2)
+						L.add(0);
+					else if (e >= 3 && e <= 8)
+						L.add(1);
+					else if (e >= 9 && e <= 15)
+						L.add(2);
+					else
+						L.add(3);
+				}
+
+				scannedPixel.put(pixel.x + "-" + pixel.y, null);
+				v_pixel = u_pixel;
+				u_pixel = pixel;
 			}
-
-			scannedPixel.put(pixel.x + "-" + pixel.y, null);
-			v_pixel = u_pixel;
-			u_pixel = pixel;
 		}
-
 		return L;
 	}
+
+
 
 	private int[] contextNeighbors(Pixel p, int matrix[][]){
 		int[] neighbors = new int[3]; 
@@ -419,7 +386,7 @@ public class CompressSCAN {
 		return neighbors;
 	}
 
-	private int calcContext(Pixel actualPixel, String predictor, int[][] matrix, Block block) {
+	private int calcContext(Pixel actualPixel, int[][] matrix) {
 
 		int[] neighbors = contextNeighbors(actualPixel, matrix);
 		if (neighbors != null)

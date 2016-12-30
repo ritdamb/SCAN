@@ -220,9 +220,9 @@ public class Reader {
 					if(predictionNeighbors != null)
 						pixelVal = predErr + (predictionNeighbors[0] +  predictionNeighbors[1])/2;
 					else
-						pixelVal = Math.abs(predErr + u);//TOGLIERE ABS
+						pixelVal = predErr + u;
 					if(pixelVal < 0){
-						System.out.println(predictionNeighbors[0] + " - " + predictionNeighbors[1]);
+						//System.out.println(predictionNeighbors[0] + " - " + predictionNeighbors[1]);
 						System.out.println("PredErr="+predErr);
 					}
 					
@@ -249,6 +249,7 @@ public class Reader {
                 int a = matrix[k][j];
                 if(a > 255 || a < 0)
                 	System.out.println("pixelVal="+a);
+
                 Color newColor = new Color(a, a, a);
                 outputImage.setRGB(k,j,newColor.getRGB());
             }
