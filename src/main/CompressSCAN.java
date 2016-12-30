@@ -185,29 +185,38 @@ public class CompressSCAN {
 			bpo.setL(listOfPrediction);
 		}
 
+		for(Pixel p: bestPath.getPath()){
+			scannedPixel.put(p.x + "-" + p.y, null);
+		}
 		return bpo;
+	}
+	
+	private boolean isScannedPixel(HashMap<String, String> tempScanned, Pixel pixel){
+		String key = pixel.x + "-" + pixel.y;
+		if(scannedPixel.containsKey(key) || tempScanned.containsKey(key))
+			return true;	
+		return false;
 	}
 
 	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel) {
 
 		Pixel pixel; // prevPixel sarebbe il nostro pixel s
-		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of
-															// prediction errors
-															// along P
-
+		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of prediction error along P
+		
+		HashMap<String, String> tempScanned = new HashMap<String, String>();
 		// il primo pixel del blocco lo faccio fuori perchè prendo il
 		// PrevLastPixel che è l'ultimo dello scanpath precendente
 		// poi invece prendo il pixel precedente (i-1)
 		pixel = path.getPixel(0);
-		int err = calcPredictionErr(pixel, PrevLastPixel, matrix);
+		int err = calcPredictionErr(pixel, PrevLastPixel, matrix, tempScanned);
 		L.add(err);
-		scannedPixel.put(pixel.x + "-" + pixel.y, null);
+		tempScanned.put(pixel.x + "-" + pixel.y, null);
 
 		for (int i = 1; i < path.size(); i++) {
 			pixel = path.getPixel(i);
-			int e = calcPredictionErr(pixel, path.getPixel(i - 1), matrix);
+			int e = calcPredictionErr(pixel, path.getPixel(i - 1), matrix, tempScanned);
 			L.add(e);
-			scannedPixel.put(pixel.x + "-" + pixel.y, null);
+			tempScanned.put(pixel.x + "-" + pixel.y, null);
 		}
 
 		// faccio la somma dei valori assoluti di tutti gli errori di predizione
@@ -220,12 +229,12 @@ public class CompressSCAN {
 		return beo;
 	}
 
-	private int[] predictionNeighbors(Pixel p, int matrix[][]){
+	private int[] predictionNeighbors(Pixel p, int matrix[][], HashMap<String, String> tempScanned){
 		int[] neighbors = new int[2]; 
 		if(p.getPredictor().equals("UR")){
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, 1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 			}
@@ -235,7 +244,7 @@ public class CompressSCAN {
 		else if(p.getPredictor().equals("UL")){
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, -1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 			}
@@ -245,7 +254,7 @@ public class CompressSCAN {
 		else if(p.getPredictor().equals("BR")){
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, 1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y) ){
+			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 			}
@@ -255,7 +264,7 @@ public class CompressSCAN {
 		else if(p.getPredictor().equals("BL")){
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, -1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)){
+			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 			}
@@ -267,9 +276,9 @@ public class CompressSCAN {
 	}
 
 	
-	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, int matrix[][]) {
+	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, int matrix[][], HashMap<String, String> tempScanned) {
 
-		int[] neighbors = predictionNeighbors(actualPixel, matrix);
+		int[] neighbors = predictionNeighbors(actualPixel, matrix, tempScanned);
 		if (neighbors != null) {
 			return matrix[actualPixel.x][actualPixel.y] - ((neighbors[0] + neighbors[1]) / 2);
 		} else {
