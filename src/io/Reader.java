@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,6 +174,10 @@ public class Reader {
 		
 		//PEZZA
 		ArrayList<ArrayList<Integer>> buffersList = CompressSCAN.getBuffersList();
+		System.out.println(buffersList.get(0).toString());
+		System.out.println(buffersList.get(1).toString());
+		System.out.println(buffersList.get(2).toString());
+		System.out.println(buffersList.get(3).toString());
 		
 		int index0 = 2;
 		int index1 = 0;

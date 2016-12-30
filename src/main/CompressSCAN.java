@@ -292,12 +292,16 @@ public class CompressSCAN {
 		for (Path p : scanPaths){
 			for (int i = 0; i < p.size(); i++) {
 				pixel = p.getPixel(i);
-				if (u_pixel == null || v_pixel == null) {
+				if (v_pixel == null || u_pixel == null) {
 					L.add(0);
-					if(v_pixel == null)
+					if(v_pixel == null){
 						first_pixel = matrix[pixel.x][pixel.y];
-					else
+						v_pixel=pixel;
+					}
+					else{
 						second_pixel = matrix[pixel.x][pixel.y];
+						u_pixel=pixel;
+					}
 				} else {
 					int e = calcContext(pixel, matrix);
 					if (e >= 0 && e <= 2)
@@ -311,8 +315,11 @@ public class CompressSCAN {
 				}
 
 				scannedPixel.put(pixel.x + "-" + pixel.y, null);
-				v_pixel = u_pixel;
-				u_pixel = pixel;
+				
+				if(u_pixel != null && u_pixel != pixel){
+					v_pixel = u_pixel;
+					u_pixel = pixel;
+				}
 			}
 		}
 		return L;
