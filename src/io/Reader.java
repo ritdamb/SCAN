@@ -254,7 +254,7 @@ public class Reader {
                 	System.out.println("pixelVal="+a);
 
                 Color newColor = new Color(a, a, a);
-                outputImage.setRGB(k,j,newColor.getRGB());
+                outputImage.setRGB(j,k,newColor.getRGB());
             }
         }
         File output = new File("output.bmp");
