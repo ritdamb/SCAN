@@ -1,20 +1,8 @@
 package main;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -59,7 +47,7 @@ public class CompressSCAN {
 
 		for (int i = 0; i < blocks.size(); i++) {
 
-			BestPathOutput bpo = BestPath(matrix, blocks.get(i), lastPixel);
+			BestPathOutput bpo = BestPath(blocks.get(i), lastPixel);
 			
 			lastPixel = bpo.getLastPixel();
 			predictionsError.addAll(bpo.getL());
@@ -69,7 +57,7 @@ public class CompressSCAN {
 		}
 		// contextmodeling
 
-		ArrayList<Integer> contexts = context(matrix, scanPaths);
+		ArrayList<Integer> contexts = context(scanPaths);
 
 		// scanPath encode
 
@@ -110,7 +98,7 @@ public class CompressSCAN {
 		return matrix;
 	}
 
-	private BestPathOutput BestPath(int matrix[][], Block block, Pixel prevLastPixel) {
+	private BestPathOutput BestPath(Block block, Pixel prevLastPixel) {
 		BestPathOutput bpo = new BestPathOutput();
 		ScanPaths s = new ScanPaths();
 		char[] k = new char[] { 'C', 'D', 'O', 'S' };
@@ -125,7 +113,7 @@ public class CompressSCAN {
 			for (t = 0; t < ConstantsScan.maxDirectionScan; t++) {
 				
 				path = s.scanPath(matrix, block, "" + k[i] + t);
-				beo = BlockError(matrix, path, prevLastPixel);
+				beo = BlockError(path, prevLastPixel);
 
 				if (beo.getE() < minError || minError == -1) {
 					minError = beo.getE();
@@ -144,10 +132,10 @@ public class CompressSCAN {
 		if (block.length() > ConstantsScan.minimumBlockSize) {
 			Block subRegions[] = Block.splitBlock(block);
 
-			BestPathOutput bpo1 = BestPath(matrix, subRegions[0], prevLastPixel);
-			BestPathOutput bpo2 = BestPath(matrix, subRegions[1], bpo1.getLastPixel());
-			BestPathOutput bpo3 = BestPath(matrix, subRegions[2], bpo2.getLastPixel());
-			BestPathOutput bpo4 = BestPath(matrix, subRegions[3], bpo3.getLastPixel());
+			BestPathOutput bpo1 = BestPath(subRegions[0], prevLastPixel);
+			BestPathOutput bpo2 = BestPath(subRegions[1], bpo1.getLastPixel());
+			BestPathOutput bpo3 = BestPath(subRegions[2], bpo2.getLastPixel());
+			BestPathOutput bpo4 = BestPath(subRegions[3], bpo3.getLastPixel());
 
 			int errorTotalSum = bpo1.getE() + bpo2.getE() + bpo3.getE() + bpo4.getE();
 			int totalBit = bpo1.getB() + bpo2.getB() + bpo3.getB() + bpo4.getB();
@@ -198,7 +186,7 @@ public class CompressSCAN {
 		return false;
 	}
 
-	private BlockErrorOutput BlockError(int matrix[][], Path path, Pixel PrevLastPixel) {
+	private BlockErrorOutput BlockError(Path path, Pixel PrevLastPixel) {
 
 		Pixel pixel; // prevPixel sarebbe il nostro pixel s
 		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of prediction error along P
@@ -208,13 +196,13 @@ public class CompressSCAN {
 		// PrevLastPixel che è l'ultimo dello scanpath precendente
 		// poi invece prendo il pixel precedente (i-1)
 		pixel = path.getPixel(0);
-		int err = calcPredictionErr(pixel, PrevLastPixel, matrix, tempScanned);
+		int err = calcPredictionErr(pixel, PrevLastPixel, tempScanned);
 		L.add(err);
 		tempScanned.put(pixel.x + "-" + pixel.y, null);
 
 		for (int i = 1; i < path.size(); i++) {
 			pixel = path.getPixel(i);
-			int e = calcPredictionErr(pixel, path.getPixel(i - 1), matrix, tempScanned);
+			int e = calcPredictionErr(pixel, path.getPixel(i - 1), tempScanned);
 			L.add(e);
 			tempScanned.put(pixel.x + "-" + pixel.y, null);
 		}
@@ -229,7 +217,7 @@ public class CompressSCAN {
 		return beo;
 	}
 
-	private int[] predictionNeighbors(Pixel p, int matrix[][], HashMap<String, String> tempScanned){
+	private int[] predictionNeighbors(Pixel p, HashMap<String, String> tempScanned){
 		int[] neighbors = new int[2]; 
 		if(p.getPredictor().equals("UR")){
 			Pixel q = p.transform(-1, 0);
@@ -276,9 +264,9 @@ public class CompressSCAN {
 	}
 
 	
-	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, int matrix[][], HashMap<String, String> tempScanned) {
+	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, HashMap<String, String> tempScanned) {
 
-		int[] neighbors = predictionNeighbors(actualPixel, matrix, tempScanned);
+		int[] neighbors = predictionNeighbors(actualPixel,tempScanned);
 		if (neighbors != null) {
 			return matrix[actualPixel.x][actualPixel.y] - ((neighbors[0] + neighbors[1]) / 2);
 		} else {
@@ -293,7 +281,7 @@ public class CompressSCAN {
 
 	}
 
-	private ArrayList<Integer> context(int matrix[][], ArrayList<Path> scanPaths) {
+	private ArrayList<Integer> context(ArrayList<Path> scanPaths) {
 
 		ArrayList<Integer> L = new ArrayList<Integer>();
 		Pixel pixel;
@@ -312,7 +300,7 @@ public class CompressSCAN {
 						u_pixel=pixel;
 					}
 				} else {
-					int e = calcContext(pixel, matrix);
+					int e = calcContext(pixel);
 					if (e >= 0 && e <= 2)
 						L.add(0);
 					else if (e >= 3 && e <= 8)
@@ -336,7 +324,7 @@ public class CompressSCAN {
 
 
 
-	private int[] contextNeighbors(Pixel p, int matrix[][]){
+	private int[] contextNeighbors(Pixel p){
 		int[] neighbors = new int[3]; 
 		if(p.getPredictor().equals("UR")){
 			Pixel q = p.transform(-1, 0);
@@ -402,9 +390,9 @@ public class CompressSCAN {
 		return neighbors;
 	}
 
-	private int calcContext(Pixel actualPixel, int[][] matrix) {
+	private int calcContext(Pixel actualPixel) {
 
-		int[] neighbors = contextNeighbors(actualPixel, matrix);
+		int[] neighbors = contextNeighbors(actualPixel);
 		if (neighbors != null)
 			return (Math.abs(neighbors[0] - neighbors[1]) + Math.abs(neighbors[1] - neighbors[2])) / 2;
 		else {
