@@ -1,5 +1,6 @@
 package ac;
 /* 
+
  * Reference arithmetic coding
  * Copyright (c) Project Nayuki
  * 
@@ -14,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -23,39 +25,60 @@ import java.io.OutputStream;
  */
 public class AdaptiveArithmeticDecompress {
 	
-	public AdaptiveArithmeticDecompress(String inPath,String outPath) throws IOException {
+	public AdaptiveArithmeticDecompress(String[] args) throws IOException {
 		// Handle command line arguments
-		/*if (args.length != 2) {
+		if (args.length != 2) {
 			System.err.println("Usage: java AdaptiveArithmeticDecompress InputFile OutputFile");
 			System.exit(1);
 			return;
-		}*/
-		File inputFile  = new File(inPath);
-		File outputFile = new File(outPath);
+		}
+		File inputFile  = new File(args[0]);
+		File outputFile = new File(args[1]);
 		
 		// Perform file decompression
 		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new FileInputStream(inputFile)))) {
 			try (OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
-				//decompress(in, out);
+				decompress(in, out);
 			}
 		}
 	}
 	
+	public AdaptiveArithmeticDecompress(String f,ArrayList<Integer> out) throws IOException {
+		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new FileInputStream(new File(f))))) {
+				decompress(in, out);
+		}
+	}
 	
 	// To allow unit testing, this method is package-private instead of private.
-	public static void decompress(BitInputStream in, OutputStream out, int n) throws IOException {
+		static ArrayList<Integer> decompress(BitInputStream in,ArrayList<Integer> out) throws IOException {
+			FlatFrequencyTable initFreqs = new FlatFrequencyTable(513);
+			FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
+			ArithmeticDecoder dec = new ArithmeticDecoder(in);
+			while (true) {
+				// Decode and write one byte
+				int symbol = dec.read(freqs);
+				if (symbol == 512){  // EOF symbol
+						break;
+				}
+				out.add(symbol-255);
+				freqs.increment(symbol);
+			}
+			return out;
+		}
+	
+	
+	// To allow unit testing, this method is package-private instead of private.
+	static void decompress(BitInputStream in, OutputStream out) throws IOException {
 		FlatFrequencyTable initFreqs = new FlatFrequencyTable(257);
 		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 		ArithmeticDecoder dec = new ArithmeticDecoder(in);
-		int i =0;
-		while (i< n) {
+		while (true) {
 			// Decode and write one byte
 			int symbol = dec.read(freqs);
 			if (symbol == 256)  // EOF symbol
 				break;
 			out.write(symbol);
 			freqs.increment(symbol);
-			i++;
 		}
 	}
 	

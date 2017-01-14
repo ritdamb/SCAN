@@ -10,6 +10,7 @@ package ac;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -30,7 +31,7 @@ public final class BitInputStream implements AutoCloseable {
 	
 	// Number of remaining bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsRemaining;
-	private byte[] inputByte;
+	private ArrayList<Byte> inputByte;
 	private int i;
 	
 	
@@ -50,7 +51,7 @@ public final class BitInputStream implements AutoCloseable {
 		numBitsRemaining = 0;
 	}
 	
-	public BitInputStream(byte[] in){
+	public BitInputStream(ArrayList<Byte> in){
 		inputByte = in;
 		currentByte = 0;
 		numBitsRemaining = 0;
@@ -69,13 +70,17 @@ public final class BitInputStream implements AutoCloseable {
 	 */
 	public int read() throws IOException {
 		if (currentByte == -1)
-			return -1;
+				return -1;
 		if (numBitsRemaining == 0) {
 			if(input !=null)
 				currentByte = input.read();
 			else{
-				currentByte =inputByte[i];
-				i++;
+				if(i == inputByte.size()) 
+					currentByte = -1;
+				else{
+					currentByte =inputByte.get(i);
+					i++;
+				}
 			}
 			if (currentByte == -1)
 				return -1;

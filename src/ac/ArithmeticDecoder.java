@@ -1,4 +1,5 @@
 package ac;
+
 /* 
  * Reference arithmetic coding
  * Copyright (c) Project Nayuki

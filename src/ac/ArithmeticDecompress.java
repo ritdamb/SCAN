@@ -15,7 +15,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-
 /**
  * Decompression application using static arithmetic coding.
  * <p>Usage: java ArithmeticDecompress InputFile OutputFile</p>
@@ -25,13 +24,13 @@ public class ArithmeticDecompress {
 	
 	public static void main(String[] args) throws IOException {
 		// Handle command line arguments
-		/*if (args.length != 2) {
+		if (args.length != 2) {
 			System.err.println("Usage: java ArithmeticDecompress InputFile OutputFile");
 			System.exit(1);
 			return;
-		}*/
-		File inputFile  = new File("compress");
-		File outputFile = new File("lena512decompress.bmp");
+		}
+		File inputFile  = new File(args[0]);
+		File outputFile = new File(args[1]);
 		
 		// Perform file decompression
 		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new FileInputStream(inputFile)))) {

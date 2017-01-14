@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -27,39 +28,64 @@ import java.io.InputStream;
  */
 public class AdaptiveArithmeticCompress {
 	
-	public AdaptiveArithmeticCompress(String inPath ,String outPath) throws IOException {
+	private ArrayList<Integer> stream;
+	
+	public AdaptiveArithmeticCompress(String[] args) throws IOException {
 		// Handle command line arguments
-		/*if (args.length != 2) {
+		if (args.length != 2) {
 			System.err.println("Usage: java AdaptiveArithmeticCompress InputFile OutputFile");
 			System.exit(1);
 			return;
-		}*/
-		File inputFile  = new File(inPath);
-		File outputFile = new File(outPath);
+		}
+		File inputFile  = new File(args[0]);
+		File outputFile = new File(args[1]);
 		
 		// Perform file compression
 		try (InputStream in = new BufferedInputStream(new FileInputStream(inputFile))) {
 			try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))) {
-				//compress(in, out);
+				compress(in, out);
 			}
 		}
 	}
 	
+	public AdaptiveArithmeticCompress(ArrayList<Integer> list, String f) throws IOException {
+		try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream(new File(f))))) {
+			compress(list, out);
+		}
+	}
+	
+	 private void compress(ArrayList<Integer> list, BitOutputStream out) throws IOException {
+			FlatFrequencyTable initFreqs = new FlatFrequencyTable(513);
+			FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
+			ArithmeticEncoder enc = new ArithmeticEncoder(out);
+			for(Integer symbol : list) {
+				// Read and encode one byte
+				symbol +=255;
+				enc.write(freqs, symbol);
+				freqs.increment(symbol);
+			}
+			enc.write(freqs, 512);  // EOF
+			enc.finish();  // Flush remaining code bits
+			
+			stream = enc.getStream();
+		}
+	
+	public ArrayList<Integer> getStream(){
+		return stream;
+	}
 	
 	// To allow unit testing, this method is package-private instead of private.
-	public static void compress(InputStream in, BitOutputStream out, int n) throws IOException {
+	static void compress(InputStream in, BitOutputStream out) throws IOException {
 		FlatFrequencyTable initFreqs = new FlatFrequencyTable(257);
 		FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 		ArithmeticEncoder enc = new ArithmeticEncoder(out);
-		int i=0;
-		while (i < n) {
+		while (true) {
 			// Read and encode one byte
 			int symbol = in.read();
 			if (symbol == -1)
 				break;
 			enc.write(freqs, symbol);
 			freqs.increment(symbol);
-			i++;
 		}
 		enc.write(freqs, 256);  // EOF
 		enc.finish();  // Flush remaining code bits

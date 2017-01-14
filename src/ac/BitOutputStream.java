@@ -9,6 +9,7 @@ package ac;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -30,7 +31,7 @@ public final class BitOutputStream implements AutoCloseable {
 	// Number of accumulated bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsFilled;
 	
-	private byte[] outputByte;
+	private ArrayList<Integer> outputByte;
 	int i;
 	
 	
@@ -45,17 +46,12 @@ public final class BitOutputStream implements AutoCloseable {
 	public BitOutputStream(OutputStream out) {
 		if (out == null)
 			throw new NullPointerException();
+		outputByte = new ArrayList<Integer>();
 		output = out;
 		currentByte = 0;
 		numBitsFilled = 0;
 	}
 	
-	public BitOutputStream(){
-		outputByte = new byte[400960];
-		currentByte = 0;
-		numBitsFilled = 0;
-		i =0;
-	}
 	
 	
 	
@@ -72,16 +68,14 @@ public final class BitOutputStream implements AutoCloseable {
 		currentByte = (currentByte << 1) | b;
 		numBitsFilled++;
 		if (numBitsFilled == 8) {
-			if(output == null){
-				outputByte[i] = (byte) currentByte; 
-				i++;
-			}else output.write(currentByte);
+			output.write(currentByte);
+			outputByte.add(currentByte);
 			currentByte = 0;
 			numBitsFilled = 0;
 		}
 	}
 	
-	public byte[] getByteStream(){
+	public ArrayList<Integer> getByteStream(){
 		return outputByte;
 	}
 	

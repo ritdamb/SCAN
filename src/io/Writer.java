@@ -1,8 +1,10 @@
 package io;
 
+import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Writer {
 
@@ -10,7 +12,7 @@ public class Writer {
 		super();
 	}
 	
-	public void writeImage (int size, String encScanPath, int pixel1, int pixel2, int n0,int n1, int n2, int n3, String encPredErrors ){
+	public void writeImage (int size, String encScanPath, int pixel1, int pixel2, int n0,int n1, int n2, int n3, ArrayList<Integer> stream ){
 		
 		//calcolo N
 		int n = (int) (Math.log(size) / Math.log(2));
@@ -25,22 +27,36 @@ public class Writer {
 		String s1 = String.format("%8s", Integer.toBinaryString(pixel1)).replace(' ', '0');
 		String s2 = String.format("%8s", Integer.toBinaryString(pixel2)).replace(' ', '0');
 		
-		String header2=s1+s2;
+		String bs0 = String.format("%32s", Integer.toBinaryString(n0)).replace(' ', '0');
+		String bs1 = String.format("%32s", Integer.toBinaryString(n1)).replace(' ', '0');
+		String bs2 = String.format("%32s", Integer.toBinaryString(n2)).replace(' ', '0');
+		String bs3 = String.format("%32s", Integer.toBinaryString(n3)).replace(' ', '0');
+		
+		String header2=s1+s2+bs0+bs1+bs2+bs3;
+		
+		String header3="";
+	//	for(Integer i : stream)
+		//	header3+=String.format("%8s", Integer.toBinaryString(i)).replace(' ', '0');
 		
 		FileOutputStream file=null;
 		try {
 			file = new FileOutputStream("compress");
 			BitOutputStream out = new BitOutputStream(file);
 			
-			String toWrite = header1+encScanPath+header2;
+			String toWrite = header1+encScanPath+header2+header3;
 			
 			for(int i=0; i < toWrite.length(); i++)
 				if(toWrite.charAt(i) == '1')
 					out.write(1);
 				else
 					out.write(0);
-			
 			out.close();
+			
+			/*BufferedOutputStream buff = new BufferedOutputStream(new FileOutputStream("compress"));
+			for(Integer i : stream)
+				buff.write(i);
+			buff.close();
+			*/
 			
 		}catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -49,6 +65,10 @@ public class Writer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+		
+		
 		
 	}
 }

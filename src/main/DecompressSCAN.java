@@ -8,9 +8,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import ac.AdaptiveArithmeticDecompress;
 import ac.ArithmeticDecoder;
 import ac.BitInputStream;
 import ac.FlatFrequencyTable;
@@ -69,27 +71,69 @@ public class DecompressSCAN {
 
 		// A questo punto abbiamo 2 byte (16 bit)che corrispondono ai primi due
 		// pixel dell'immagine
-		String pixel = inputBits.substring(index, index + 8);
+		String tmp = inputBits.substring(index, index + 8);
 		index = index + 8;
-		int pixel1 = Integer.parseInt(pixel, 2);
+		int pixel1 = Integer.parseInt(tmp, 2);
 
-		pixel = inputBits.substring(index, index + 8);
+		tmp = inputBits.substring(index, index + 8);
 		index = index + 8;
-		int pixel2 = Integer.parseInt(pixel, 2);
+		int pixel2 = Integer.parseInt(tmp, 2);
 
 		System.out.println("pixel1=" + pixel1);
 		System.out.println("pixel2=" + pixel2);
 
-		// dovrebbero esserci anche 16 byte ( 4 int)
-		// che rappresentano la size dei buffers dell'arithmetic code
-
+		// size dei buffer 16 byte ( 4 int)
+		
+		tmp = inputBits.substring(index, index + 32);
+		index = index + 32;
+		int buffSize0 = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 32);
+		index = index + 32;
+		int buffSize1 = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 32);
+		index = index + 32;
+		int buffSize2 = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 32);
+		index = index + 32;
+		int buffSize3 = Integer.parseInt(tmp, 2);
+		
+		System.out.println(buffSize0);
+		System.out.println(buffSize1);
+		System.out.println(buffSize2);
+		System.out.println(buffSize3);
 		/** PREDICTION ERRORS **/
 
 		// decompressione arithmeticCoding
-
-		// ArrayList<ArrayList<Integer>> buffersList = arithmeticCodingDecode();
-		ArrayList<ArrayList<Integer>> buffersList = CompressSCAN.getBuffersList();
-
+		ArrayList<Integer> tmpList = new ArrayList<Integer>();
+		ArrayList<ArrayList<Integer>> buffersList = new ArrayList<ArrayList<Integer>>();
+		
+		AdaptiveArithmeticDecompress decomp = new AdaptiveArithmeticDecompress("comp0.tmp",tmpList);
+		System.out.println("Size 0: " + tmpList.size() );
+		buffersList.add(0,tmpList);
+		tmpList= new ArrayList<Integer>();
+		decomp = new AdaptiveArithmeticDecompress("comp1.tmp",tmpList);
+		System.out.println("Size 1: " + tmpList.size() );
+		buffersList.add(1,tmpList);
+		tmpList=new ArrayList<Integer>();
+		decomp = new AdaptiveArithmeticDecompress("comp2.tmp",tmpList);
+		System.out.println("Size 2: " + tmpList.size() );
+		buffersList.add(2,tmpList);
+		tmpList=new ArrayList<Integer>();
+		decomp = new AdaptiveArithmeticDecompress("comp3.tmp",tmpList);
+		System.out.println("Size 3: " + tmpList.size() );
+		buffersList.add(3,tmpList);
+		
+		/*
+		System.out.println("SIZE BUFF " + buff.size());
+		buffersList.add(0, buff.subList(buffSize1, buff.size()));
+		buffersList.add(1, buff.subList(buffSize2, buffSize1));		
+		buffersList.add(2, buff.subList(buffSize3, buffSize2));
+		buffersList.add(3, buff.subList(0, buffSize3));
+*/
+		
 		/** IMAGE RECONSTRUCTION **/
 
 		// creo una lista di Path in ordine sulla matrice
@@ -161,7 +205,7 @@ public class DecompressSCAN {
 				if (pixelVal < 0) {
 					// System.out.println(predictionNeighbors[0] + " - " +
 					// predictionNeighbors[1]);
-					System.out.println("PredErr=" + predErr);
+					//System.out.println("PredErr=" + predErr);
 				}
 
 				matrix[actualPixel.x][actualPixel.y] = pixelVal;
@@ -377,14 +421,14 @@ public class DecompressSCAN {
 				scanPathTypes.add(compositePath);
 			}
 		}
-
+/*
 		for (String p : scanPathTypes) {
 			System.out.println(p);
 		}
-
+*/
 		return scanPathTypes;
 	}
-
+/*
 	public ArrayList<ArrayList<Integer>> arithmeticCodingDecode(ArrayList<byte[]> stream) throws IOException {
 
 		ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
@@ -416,5 +460,5 @@ public class DecompressSCAN {
 
 		return result;
 	}
-
+*/
 }

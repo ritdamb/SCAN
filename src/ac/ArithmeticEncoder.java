@@ -8,6 +8,7 @@ package ac;
  */
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -97,6 +98,12 @@ public final class ArithmeticEncoder extends ArithmeticCoderBase {
 		if (numUnderflow == Integer.MAX_VALUE)
 			throw new ArithmeticException("Maximum underflow reached");
 		numUnderflow++;
+	}
+
+
+
+	public ArrayList<Integer> getStream() {
+		return output.getByteStream();
 	}
 	
 }

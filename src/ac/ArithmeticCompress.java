@@ -1,3 +1,4 @@
+
 package ac;
 /* 
  * Reference arithmetic coding
@@ -6,7 +7,6 @@ package ac;
  * https://www.nayuki.io/page/reference-arithmetic-coding
  * https://github.com/nayuki/Reference-arithmetic-coding
  */
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -28,13 +28,13 @@ public class ArithmeticCompress {
 	
 	public static void main(String[] args) throws IOException {
 		// Handle command line arguments
-		/*if (args.length != 2) {
+		if (args.length != 2) {
 			System.err.println("Usage: java ArithmeticCompress InputFile OutputFile");
 			System.exit(1);
 			return;
-		}*/
-		File inputFile  = new File("lena512.bmp");
-		File outputFile = new File("compress");
+		}
+		File inputFile  = new File(args[0]);
+		File outputFile = new File(args[1]);
 		
 		// Read input file once to compute symbol frequencies
 		FrequencyTable freqs = getFrequencies(inputFile);

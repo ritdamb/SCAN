@@ -1,7 +1,11 @@
 package main;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,8 +31,8 @@ public class CompressSCAN {
 	private int first_pixel, second_pixel;
 	private int[][] matrix;
 	private ArrayList<Block> blocks;
-	private static ArrayList<ArrayList<Integer>> buffersList;
-
+	private int buffSize0,buffSize1,buffSize2,buffSize3;
+	
 	public CompressSCAN(String pathInputFile, String pathOutFile) throws IOException {
 
 		scannedPixel = new HashMap<String, String>();
@@ -42,13 +46,13 @@ public class CompressSCAN {
 		// scanning and prediction
 		Pixel lastPixel = null;
 		ArrayList<String> scanPathsName = new ArrayList<String>();
-		ArrayList<Path> scanPaths= new ArrayList<Path>();
+		ArrayList<Path> scanPaths = new ArrayList<Path>();
 		ArrayList<Integer> predictionsError = new ArrayList<Integer>();
 
 		for (int i = 0; i < blocks.size(); i++) {
 
 			BestPathOutput bpo = BestPath(blocks.get(i), lastPixel);
-			
+
 			lastPixel = bpo.getLastPixel();
 			predictionsError.addAll(bpo.getL());
 			scanPathsName.add(bpo.getBestPathName());
@@ -68,18 +72,14 @@ public class CompressSCAN {
 		// arithmetic coding
 		// arithmeticCoding(predictionsError, contexts);
 
-		buffersList = arithmeticCodingEncode(predictionsError, contexts);
-		
+		ArrayList<Integer> stream = arithmeticCodingEncode(predictionsError, contexts);
+
 		// scrivo i byte nel file
 		Writer writer = new Writer();
-		
-		writer.writeImage(matrix.length, encodeScanPaths, first_pixel, second_pixel, buffersList.get(0).size(), buffersList.get(1).size(),
-				buffersList.get(2).size(), buffersList.get(3).size(), "010101010");
 
-	}
-	
-	public static ArrayList<ArrayList<Integer>> getBuffersList(){
-		return buffersList;
+		writer.writeImage(matrix.length, encodeScanPaths, first_pixel, second_pixel,
+				buffSize0,buffSize1,buffSize2,buffSize3,stream);
+
 	}
 
 	private int[][] loadImage(BufferedImage image) {
@@ -111,7 +111,7 @@ public class CompressSCAN {
 
 		for (int i = 0; i < k.length; i++) {
 			for (t = 0; t < ConstantsScan.maxDirectionScan; t++) {
-				
+
 				path = s.scanPath(matrix, block, "" + k[i] + t);
 				beo = BlockError(path, prevLastPixel);
 
@@ -173,24 +173,26 @@ public class CompressSCAN {
 			bpo.setL(listOfPrediction);
 		}
 
-		for(Pixel p: bestPath.getPath()){
+		for (Pixel p : bestPath.getPath()) {
 			scannedPixel.put(p.x + "-" + p.y, null);
 		}
 		return bpo;
 	}
-	
-	private boolean isScannedPixel(HashMap<String, String> tempScanned, Pixel pixel){
+
+	private boolean isScannedPixel(HashMap<String, String> tempScanned, Pixel pixel) {
 		String key = pixel.x + "-" + pixel.y;
-		if(scannedPixel.containsKey(key) || tempScanned.containsKey(key))
-			return true;	
+		if (scannedPixel.containsKey(key) || tempScanned.containsKey(key))
+			return true;
 		return false;
 	}
 
 	private BlockErrorOutput BlockError(Path path, Pixel PrevLastPixel) {
 
 		Pixel pixel; // prevPixel sarebbe il nostro pixel s
-		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of prediction error along P
-		
+		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of
+															// prediction error
+															// along P
+
 		HashMap<String, String> tempScanned = new HashMap<String, String>();
 		// il primo pixel del blocco lo faccio fuori perchè prendo il
 		// PrevLastPixel che è l'ultimo dello scanpath precendente
@@ -217,56 +219,48 @@ public class CompressSCAN {
 		return beo;
 	}
 
-	private int[] predictionNeighbors(Pixel p, HashMap<String, String> tempScanned){
-		int[] neighbors = new int[2]; 
-		if(p.getPredictor().equals("UR")){
+	private int[] predictionNeighbors(Pixel p, HashMap<String, String> tempScanned) {
+		int[] neighbors = new int[2];
+		if (p.getPredictor().equals("UR")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, 1);
-			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
+			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
-			}
-			else
+			} else
 				return null;
-		}
-		else if(p.getPredictor().equals("UL")){
+		} else if (p.getPredictor().equals("UL")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, -1);
-			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
+			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
-			}
-			else
+			} else
 				return null;
-		}
-		else if(p.getPredictor().equals("BR")){
+		} else if (p.getPredictor().equals("BR")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, 1);
-			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
+			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
-			}
-			else
+			} else
 				return null;
-		}
-		else if(p.getPredictor().equals("BL")){
+		} else if (p.getPredictor().equals("BL")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, -1);
-			if(isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)){
+			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
-			}
-			else
+			} else
 				return null;
 		}
 
 		return neighbors;
 	}
 
-	
 	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, HashMap<String, String> tempScanned) {
 
-		int[] neighbors = predictionNeighbors(actualPixel,tempScanned);
+		int[] neighbors = predictionNeighbors(actualPixel, tempScanned);
 		if (neighbors != null) {
 			return matrix[actualPixel.x][actualPixel.y] - ((neighbors[0] + neighbors[1]) / 2);
 		} else {
@@ -286,18 +280,17 @@ public class CompressSCAN {
 		ArrayList<Integer> L = new ArrayList<Integer>();
 		Pixel pixel;
 		scannedPixel = new HashMap<String, String>();
-		for (Path p : scanPaths){
+		for (Path p : scanPaths) {
 			for (int i = 0; i < p.size(); i++) {
 				pixel = p.getPixel(i);
 				if (v_pixel == null || u_pixel == null) {
 					L.add(0);
-					if(v_pixel == null){
+					if (v_pixel == null) {
 						first_pixel = matrix[pixel.x][pixel.y];
-						v_pixel=pixel;
-					}
-					else{
+						v_pixel = pixel;
+					} else {
 						second_pixel = matrix[pixel.x][pixel.y];
-						u_pixel=pixel;
+						u_pixel = pixel;
 					}
 				} else {
 					int e = calcContext(pixel);
@@ -312,8 +305,8 @@ public class CompressSCAN {
 				}
 
 				scannedPixel.put(pixel.x + "-" + pixel.y, null);
-				
-				if(u_pixel != null && u_pixel != pixel){
+
+				if (u_pixel != null && u_pixel != pixel) {
 					v_pixel = u_pixel;
 					u_pixel = pixel;
 				}
@@ -322,68 +315,51 @@ public class CompressSCAN {
 		return L;
 	}
 
-
-
-	private int[] contextNeighbors(Pixel p){
-		int[] neighbors = new int[3]; 
-		if(p.getPredictor().equals("UR")){
+	private int[] contextNeighbors(Pixel p) {
+		int[] neighbors = new int[3];
+		if (p.getPredictor().equals("UR")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(-1, 1);
 			Pixel s = p.transform(0, 1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
-					scannedPixel.containsKey(r.x + "-" + r.y) && 
-					scannedPixel.containsKey(s.x + "-" + s.y)
-					){
+			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
+					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 				neighbors[2] = matrix[s.x][s.y];
-			}
-			else
+			} else
 				return null;
-		}
-		else if(p.getPredictor().equals("UL")){
+		} else if (p.getPredictor().equals("UL")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(-1, -1);
 			Pixel s = p.transform(0, -1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
-					scannedPixel.containsKey(r.x + "-" + r.y) && 
-					scannedPixel.containsKey(s.x + "-" + s.y)
-					){
+			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
+					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 				neighbors[2] = matrix[s.x][s.y];
-			}
-			else
+			} else
 				return null;
-		}
-		else if(p.getPredictor().equals("BR")){
+		} else if (p.getPredictor().equals("BR")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(1, 1);
 			Pixel s = p.transform(0, 1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
-					scannedPixel.containsKey(r.x + "-" + r.y) && 
-					scannedPixel.containsKey(s.x + "-" + s.y)
-					){
+			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
+					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 				neighbors[2] = matrix[s.x][s.y];
-			}
-			else
+			} else
 				return null;
-		}
-		else if(p.getPredictor().equals("BL")){
+		} else if (p.getPredictor().equals("BL")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(1, -1);
 			Pixel s = p.transform(0, -1);
-			if(scannedPixel.containsKey(q.x + "-" + q.y) && 
-					scannedPixel.containsKey(r.x + "-" + r.y) && 
-					scannedPixel.containsKey(s.x + "-" + s.y)
-					){
+			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
+					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
 				neighbors[0] = matrix[q.x][q.y];
 				neighbors[1] = matrix[r.x][r.y];
 				neighbors[2] = matrix[s.x][s.y];
-			}
-			else
+			} else
 				return null;
 		}
 
@@ -454,14 +430,13 @@ public class CompressSCAN {
 		} else if (k.equals("3")) {
 			return "11";
 		} else {
-			return null;
+			throw new IllegalArgumentException();
 		}
 	}
 
-	private ArrayList<ArrayList<Integer>> arithmeticCodingEncode(ArrayList<Integer> predictionsError,
+	private ArrayList<Integer> arithmeticCodingEncode(ArrayList<Integer> predictionsError,
 			ArrayList<Integer> contexts) throws IOException {
 
-		ArrayList<ArrayList<Integer>> listBuffers = new ArrayList<ArrayList<Integer>>();
 		ArrayList<Integer> buff0 = new ArrayList<Integer>();
 		ArrayList<Integer> buff1 = new ArrayList<Integer>();
 		ArrayList<Integer> buff2 = new ArrayList<Integer>();
@@ -479,108 +454,44 @@ public class CompressSCAN {
 				buff3.add(predictionsError.get(i));
 		}
 
-		listBuffers.add(buff0);
-		listBuffers.add(buff1);
-		listBuffers.add(buff2);
-		listBuffers.add(buff3);
-
-		/*
-		 * //effettuo l'encoding dei buffer for(ArrayList<Integer> buff :
-		 * listBuffers){ FlatFrequencyTable initFreqs = new
-		 * FlatFrequencyTable(513); FrequencyTable freqs = new
-		 * SimpleFrequencyTable(initFreqs); BitOutputStream out = new
-		 * BitOutputStream(); ArithmeticEncoder enc = new
-		 * ArithmeticEncoder(out); for (Integer symbol : buff ) { symbol += 255;
-		 * enc.write(freqs, symbol); freqs.increment(symbol); }
-		 * 
-		 * enc.write(freqs, 512); // EOF enc.finish(); // Flush remaining code
-		 * bits stream.add(out.getByteStream()); }
-		 */
-		/*
-		BitOutputStream writer = new BitOutputStream();
-		// intero -> string binaria
-		for (int i = 0; i < buff0.size(); i++) {
-			String toWrite = String.format("%9s", Integer.toBinaryString(buff0.get(i))).replace(' ', '0');
-			for (int j = 0; j < toWrite.length(); j++) {
-				if (toWrite.charAt(j) == '0')
-					writer.write(0);
-				else
-					writer.write(1);
-			}
-		}
-
-		ByteArrayInputStream in = new ByteArrayInputStream(writer.getByteStream());
-		BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream("compress")));
-		AdaptiveArithmeticCompress.compress(in, out, buff0.size());
-
-		BitInputStream ind = new BitInputStream(new BufferedInputStream(new FileInputStream("compress")));
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		AdaptiveArithmeticDecompress.decompress(ind, baos, buff0.size());
-
-		byte[] byteArray = baos.toByteArray();
-		String stream = "";
-
-		for (int i = 0; i < byteArray.length; i++)
-			stream += String.format("%8s", Integer.toBinaryString(byteArray[i])).replace(' ', '0');
-
-		int i = 0, j = 9;
-		while (j <= stream.length()) {
-			String bytes = stream.substring(i, j);
-			int n = Integer.parseUnsignedInt(bytes, 2);
-			list.add(n);
-			i += 9;
-			j += 9;
-		}
-
-		System.out.println(buff0.toString());
-
-		System.out.println(list.toString());*/
-
-		/*
-		 * ArithmeticCodeOutput output = new ArithmeticCodeOutput(stream,
-		 * buff0.size(), buff1.size(), buff2.size(), buff3.size());
-		 * 
-		 * 
-		 * //decompression test DecompressSCAN decompressor = new
-		 * DecompressSCAN(); ArrayList<ArrayList<Integer>> list =
-		 * decompressor.arithmeticCodingDecode(stream);
-		 * 
-		 * int i=0;
-		 * 
-		 * while(i< 3){ ArrayList<Integer> deBuff = list.get(i);
-		 * ArrayList<Integer> enBuff = listBuffers.get(i);
-		 * 
-		 * if(deBuff.size() != enBuff.size()){ System.out.println(
-		 * "Size diverse a "+ i); break; } for(int j=0; j < deBuff.size(); j++ )
-		 * if(deBuff.get(j)!= enBuff.get(j)){ System.out.println("DIVERSI "+j +
-		 * " di "+i); break; }
-		 * 
-		 * i++; }
-		 */
-
-		return listBuffers;
-
+		buffSize0 = buff0.size();
+		buffSize1 = buff1.size();
+		buffSize2 = buff2.size();
+		buffSize3 = buff3.size();
+		
+		
+		AdaptiveArithmeticCompress comp = new AdaptiveArithmeticCompress( buff0, "comp0.tmp");
+		list.addAll(comp.getStream());
+		comp = new AdaptiveArithmeticCompress( buff1, "comp1.tmp");
+		list.addAll(comp.getStream());
+		comp = new AdaptiveArithmeticCompress( buff2, "comp2.tmp");
+		list.addAll(comp.getStream());
+		comp = new AdaptiveArithmeticCompress( buff3, "comp3.tmp");
+		list.addAll(comp.getStream());
+		
+		return list;
+		
 	}
 
-	private ArithmeticCodeOutput arithmeticCoding(ArrayList<Integer> predictionsError,
-			ArrayList<Integer> contexts) {
+	private ArithmeticCodeOutput arithmeticCoding(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts) {
 		ArrayList<int[]> frequency = new ArrayList<int[]>();
 
-		String[] buffers = new String[4]; //buffer di stringhe binarie codificate
+		String[] buffers = new String[4]; // buffer di stringhe binarie
+											// codificate
 		double[] lowerbound = new double[4];
 		double[] highbound = new double[4];
 		int[] scale = new int[4];
 		int[] n = new int[4]; // dimensione dei buffer
-		double [] total = new double[4]; // totale da codificare, necessario per il calcolo della frequenza
+		double[] total = new double[4]; // totale da codificare, necessario per
+										// il calcolo della frequenza
 
-		
-		//inizializzazione variabili
+		// inizializzazione variabili
 		for (int i = 0; i < 4; i++) {
 			buffers[i] = "";
 			lowerbound[i] = 0;
 			highbound[i] = 1;
 			scale[i] = 0;
-			n[i]=0;
+			n[i] = 0;
 			total[i] = 511;
 			int[] f = new int[512];
 			for (int j = 0; j < 512; j++)
@@ -588,20 +499,22 @@ public class CompressSCAN {
 			frequency.add(f);
 		}
 
-		
 		int c = -1;
-		for (int index=0; index < predictionsError.size(); index++ ) {//per ogni errore e
-			
+		for (int index = 0; index < predictionsError.size(); index++) {// per
+																		// ogni
+																		// errore
+																		// e
+
 			int e = predictionsError.get(index);
 			c = contexts.get(index);
 
 			double range = highbound[c] - lowerbound[c];
 
 			double occurrence = 0;
-			for (int j = -255; j <= e - 1; j++) //calcolo l'occorenze
+			for (int j = -255; j <= e - 1; j++) // calcolo l'occorenze
 				occurrence += frequency.get(c)[j + 255];
 
-			double lower = lowerbound[c] + range * (occurrence / total[c]); //lowebound
+			double lower = lowerbound[c] + range * (occurrence / total[c]); // lowebound
 
 			occurrence = 0;
 			for (int j = -255; j <= e; j++)
@@ -612,8 +525,8 @@ public class CompressSCAN {
 			lowerbound[c] = lower;
 			highbound[c] = high;
 
-			//codifica
-			while (true) { 
+			// codifica
+			while (true) {
 				if (highbound[c] < 0.5) {
 					buffers[c] += "0";
 					if (scale[c] != 0)
@@ -621,7 +534,7 @@ public class CompressSCAN {
 							buffers[c] += "1";
 					lowerbound[c] = 2 * lowerbound[c];
 					highbound[c] = 2 * highbound[c];
-					n[c]+=scale[c]+1;
+					n[c] += scale[c] + 1;
 					scale[c] = 0;
 				} else if (lowerbound[c] >= 0.5) {
 					buffers[c] += "1";
@@ -630,7 +543,7 @@ public class CompressSCAN {
 							buffers[c] += "0";
 					lowerbound[c] = 2 * (lowerbound[c] - 0.5);
 					highbound[c] = 2 * (highbound[c] - 0.5);
-					n[c]+=scale[c]+1;
+					n[c] += scale[c] + 1;
 					scale[c] = 0;
 				} else if (lowerbound[c] >= 0.25 && highbound[c] < 0.75) {
 					lowerbound[c] = 2 * (lowerbound[c] - 0.25);
@@ -645,21 +558,22 @@ public class CompressSCAN {
 		}
 
 		for (int i = 0; i < 4; i++) {
-			
-			// "output binary form of L(i) with scale(i) 1 after first bit into buffers(i)"
+
+			// "output binary form of L(i) with scale(i) 1 after first bit into
+			// buffers(i)"
 			String lower = Long.toBinaryString(Double.doubleToRawLongBits(lowerbound[i]));
-			String tmp="";
+			String tmp = "";
 			for (int j = 0; j < scale[c]; j++)
 				tmp += "1";
-			String toSave = lower.charAt(0) + tmp + lower.substring(1,lower.length());
-			buffers[i]+=toSave;
-			
-			n[i] += scale[i]+ toSave.length();
+			String toSave = lower.charAt(0) + tmp + lower.substring(1, lower.length());
+			buffers[i] += toSave;
+
+			n[i] += scale[i] + toSave.length();
 		}
 
-		//out buffers and size n
-		//ArithmeticCodeOutput output = new ArithmeticCodeOutput();
-		
+		// out buffers and size n
+		// ArithmeticCodeOutput output = new ArithmeticCodeOutput();
+
 		return null;
 
 	}
