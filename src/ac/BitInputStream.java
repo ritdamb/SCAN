@@ -27,11 +27,11 @@ public final class BitInputStream implements AutoCloseable {
 	private InputStream input;
 	
 	// Either in the range [0x00, 0xFF] if bits are available, or -1 if end of stream is reached.
-	private int currentByte;
+	private int currentbyte;
 	
 	// Number of remaining bits in the current byte, always between 0 and 7 (inclusive).
 	private int numBitsRemaining;
-	private ArrayList<Byte> inputByte;
+	private byte[] inputbyte;
 	private int i;
 	
 	
@@ -47,13 +47,13 @@ public final class BitInputStream implements AutoCloseable {
 		if (in == null)
 			throw new NullPointerException();
 		input = in;
-		currentByte = 0;
+		currentbyte = 0;
 		numBitsRemaining = 0;
 	}
 	
-	public BitInputStream(ArrayList<Byte> in){
-		inputByte = in;
-		currentByte = 0;
+	public BitInputStream(byte[] in){
+		inputbyte = in;
+		currentbyte = 0;
 		numBitsRemaining = 0;
 		i =0;
 	}
@@ -69,27 +69,27 @@ public final class BitInputStream implements AutoCloseable {
 	 * @throws IOException if an I/O exception occurred
 	 */
 	public int read() throws IOException {
-		if (currentByte == -1)
+		if (currentbyte == -1)
 				return -1;
 		if (numBitsRemaining == 0) {
 			if(input !=null)
-				currentByte = input.read();
+				currentbyte = input.read();
 			else{
-				if(i == inputByte.size()) 
-					currentByte = -1;
+				if(i == inputbyte.length) 
+					currentbyte = -1;
 				else{
-					currentByte =inputByte.get(i);
+					currentbyte =inputbyte[i];
 					i++;
 				}
 			}
-			if (currentByte == -1)
+			if (currentbyte == -1)
 				return -1;
 			numBitsRemaining = 8;
 		}
 		if (numBitsRemaining <= 0)
 			throw new AssertionError();
 		numBitsRemaining--;
-		return (currentByte >>> numBitsRemaining) & 1;
+		return (currentbyte >>> numBitsRemaining) & 1;
 	}
 	
 	
@@ -116,8 +116,21 @@ public final class BitInputStream implements AutoCloseable {
 	public void close() throws IOException {
 		if(input != null)
 			input.close();
-		currentByte = -1;
+		currentbyte = -1;
 		numBitsRemaining = 0;
 	}
+	
+	public InputStream getInputStream(){
+		return input;
+	}
+
+	public int getNumBitsRemaining(){
+		return numBitsRemaining;
+	}
+
+	public void read(byte[] bytes) throws IOException {
+		input.read(bytes);
+	}
+	
 	
 }

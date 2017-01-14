@@ -10,10 +10,12 @@ package ac;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
@@ -46,6 +48,16 @@ public class AdaptiveArithmeticDecompress {
 	public AdaptiveArithmeticDecompress(String f,ArrayList<Integer> out) throws IOException {
 		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new FileInputStream(new File(f))))) {
 				decompress(in, out);
+		}
+	}
+	
+	public AdaptiveArithmeticDecompress(BitInputStream in,ArrayList<Integer> out) throws IOException {
+			decompress(in, out);
+	}
+	
+	public AdaptiveArithmeticDecompress(byte[] input,ArrayList<Integer> out) throws IOException {
+		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new ByteArrayInputStream(input)))){
+			decompress(in, out);
 		}
 	}
 	

@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import ac.BitOutputStream;
+
 public class Writer {
 
 	public Writer() {
@@ -35,28 +37,29 @@ public class Writer {
 		String header2=s1+s2+bs0+bs1+bs2+bs3;
 		
 		String header3="";
-	//	for(Integer i : stream)
-		//	header3+=String.format("%8s", Integer.toBinaryString(i)).replace(' ', '0');
-		
+	/*	for(Integer i : stream)
+			header3+=String.format("%8s", Integer.toBinaryString(i)).replace(' ', '0');
+		*/
 		FileOutputStream file=null;
 		try {
 			file = new FileOutputStream("compress");
 			BitOutputStream out = new BitOutputStream(file);
 			
 			String toWrite = header1+encScanPath+header2+header3;
-			
+			System.out.println("Header1/Header2");
 			for(int i=0; i < toWrite.length(); i++)
 				if(toWrite.charAt(i) == '1')
 					out.write(1);
 				else
 					out.write(0);
-			out.close();
 			
-			/*BufferedOutputStream buff = new BufferedOutputStream(new FileOutputStream("compress"));
+			System.out.println("Header3");
+			
 			for(Integer i : stream)
-				buff.write(i);
-			buff.close();
-			*/
+				out.writeByte(i);
+			
+			
+			out.close();
 			
 		}catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

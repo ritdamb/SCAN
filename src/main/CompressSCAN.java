@@ -454,19 +454,27 @@ public class CompressSCAN {
 				buff3.add(predictionsError.get(i));
 		}
 
+		/*
 		buffSize0 = buff0.size();
 		buffSize1 = buff1.size();
 		buffSize2 = buff2.size();
 		buffSize3 = buff3.size();
+		*/
 		
+		AdaptiveArithmeticCompress comp = new AdaptiveArithmeticCompress( buff0);
+		buffSize0 = comp.getStream().size();
+		list.addAll(comp.getStream());
 		
-		AdaptiveArithmeticCompress comp = new AdaptiveArithmeticCompress( buff0, "comp0.tmp");
+		comp = new AdaptiveArithmeticCompress( buff1);
+		buffSize1 = comp.getStream().size();
 		list.addAll(comp.getStream());
-		comp = new AdaptiveArithmeticCompress( buff1, "comp1.tmp");
+		
+		comp = new AdaptiveArithmeticCompress( buff2);
+		buffSize2 = comp.getStream().size();
 		list.addAll(comp.getStream());
-		comp = new AdaptiveArithmeticCompress( buff2, "comp2.tmp");
-		list.addAll(comp.getStream());
-		comp = new AdaptiveArithmeticCompress( buff3, "comp3.tmp");
+		
+		comp = new AdaptiveArithmeticCompress( buff3);
+		buffSize3 = comp.getStream().size();
 		list.addAll(comp.getStream());
 		
 		return list;

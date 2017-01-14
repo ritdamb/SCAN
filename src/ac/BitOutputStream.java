@@ -53,8 +53,6 @@ public final class BitOutputStream implements AutoCloseable {
 	}
 	
 	
-	
-	
 	/*---- Methods ----*/
 	
 	/**
@@ -79,6 +77,11 @@ public final class BitOutputStream implements AutoCloseable {
 		return outputByte;
 	}
 	
+	public void writeByte(int b) throws IOException{
+		while (numBitsFilled != 0)
+			write(0);
+		output.write(b);
+	}
 	
 	/**
 	 * Closes this stream and the underlying output stream. If called when this

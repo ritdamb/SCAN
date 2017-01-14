@@ -9,6 +9,7 @@ package ac;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -50,6 +51,12 @@ public class AdaptiveArithmeticCompress {
 	
 	public AdaptiveArithmeticCompress(ArrayList<Integer> list, String f) throws IOException {
 		try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream(new File(f))))) {
+			compress(list, out);
+		}
+	}
+	
+	public AdaptiveArithmeticCompress(ArrayList<Integer> list) throws IOException {
+		try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new ByteArrayOutputStream()))) {
 			compress(list, out);
 		}
 	}
