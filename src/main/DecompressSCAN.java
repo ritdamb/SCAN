@@ -51,7 +51,7 @@ public class DecompressSCAN {
 		String inputBits = "";
 		while (true) {
 			inputBits += in.read();
-			if(inputBits.length() == 3) 
+			if(inputBits.length() == ConstantsScan.header1BitSize) 
 				break;
 		}
 
@@ -73,7 +73,7 @@ public class DecompressSCAN {
 		// pixel dell'immagine e abbiamo 16 byte( 4 int, 32 bit ciascuno)
 		// delle size dei 4 buffer
 		
-		int bitToRead=144, i =0;
+		int bitToRead=ConstantsScan.header2BitSize, i =0;
 		inputBits="";
 		while(i < bitToRead){
 			inputBits+= in.read();
