@@ -12,6 +12,7 @@ public class Test {
 		
 		String fileName = "lena.bmp";
 
+
 		CompressSCAN compressor = new CompressSCAN("images/"+fileName, "output/"+fileName+".compressed");
 		compressor.compress(); // crea il file compress
 		

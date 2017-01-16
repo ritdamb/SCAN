@@ -45,24 +45,18 @@ public class AdaptiveArithmeticDecompress {
 		}
 	}
 	
-	public AdaptiveArithmeticDecompress(String f,ArrayList<Integer> out) throws IOException {
-		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new FileInputStream(new File(f))))) {
-				decompress(in, out);
-		}
+	public AdaptiveArithmeticDecompress(){
+		super();
 	}
 	
-	public AdaptiveArithmeticDecompress(BitInputStream in,ArrayList<Integer> out) throws IOException {
-			decompress(in, out);
-	}
-	
-	public AdaptiveArithmeticDecompress(byte[] input,ArrayList<Integer> out) throws IOException {
+	public void decompress(byte[] input,ArrayList<Integer> out) throws IOException {
 		try (BitInputStream in = new BitInputStream(new BufferedInputStream(new ByteArrayInputStream(input)))){
 			decompress(in, out);
 		}
 	}
 	
-	// To allow unit testing, this method is package-private instead of private.
-		static ArrayList<Integer> decompress(BitInputStream in,ArrayList<Integer> out) throws IOException {
+	//custom decompress
+	private void decompress(BitInputStream in,ArrayList<Integer> out) throws IOException {
 			FlatFrequencyTable initFreqs = new FlatFrequencyTable(513);
 			FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 			ArithmeticDecoder dec = new ArithmeticDecoder(in);
@@ -75,9 +69,7 @@ public class AdaptiveArithmeticDecompress {
 				out.add(symbol-255);
 				freqs.increment(symbol);
 			}
-			return out;
 		}
-	
 	
 	// To allow unit testing, this method is package-private instead of private.
 	static void decompress(BitInputStream in, OutputStream out) throws IOException {
