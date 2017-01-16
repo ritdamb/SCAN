@@ -6,19 +6,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-
 import javax.imageio.ImageIO;
-
 import ac.AdaptiveArithmeticDecompress;
-import ac.ArithmeticDecoder;
 import ac.BitInputStream;
-import ac.FlatFrequencyTable;
-import ac.FrequencyTable;
-import ac.SimpleFrequencyTable;
 import model.Block;
 import model.Path;
 import model.Pixel;
@@ -31,7 +23,7 @@ public class DecompressSCAN {
 	private String inputPath, outputPath;
 	private int[][] matrix;
 	private BitInputStream in;
-	
+
 	public DecompressSCAN(String compressFile, String outputFile) throws FileNotFoundException {
 
 		super();
@@ -42,10 +34,8 @@ public class DecompressSCAN {
 	}
 
 	public void decompress() throws IOException {
-		
+
 		/** HEADER1 **/
-		System.out.println("Decodifico Header 1...");
-		
 		//mi prendo i singoli bit di header1, scanpaths e header2
 		//non mi servono i bit dei prediction errors
 		String inputBits = "";
@@ -57,29 +47,27 @@ public class DecompressSCAN {
 
 		int n = Integer.parseInt(inputBits, 2) + 2;
 		int size = (int) Math.pow(2, n);
-		System.out.println("size " + size);
 
 		// inizializzo la matrice
 		matrix = new int[size][size];
 
 		/** SCANPATHS **/
-		System.out.println("Decodifico Scanpaths...");
-		// parto da 3 perch� ho gi� letto i primi 3 bit
+		//System.out.println("Decodifico Scanpaths...");
+		// parto da 3 perche' ho gia' letto i primi 3 bit
 		ArrayList<String> scanPathTypes = decodeScanPaths(size);
 
 		/** HEADER 2 **/
-		System.out.println("Decodifico Header 2...");
 		// A questo punto abbiamo 2 byte (16 bit)che corrispondono ai primi due
 		// pixel dell'immagine e abbiamo 16 byte( 4 int, 32 bit ciascuno)
 		// delle size dei 4 buffer
-		
+
 		int bitToRead=ConstantsScan.header2BitSize, i =0;
 		inputBits="";
 		while(i < bitToRead){
 			inputBits+= in.read();
 			i++;
 		}
-		
+
 		int index=0;
 		String tmp = inputBits.substring(index, index + 8);
 		index = index + 8;
@@ -89,73 +77,55 @@ public class DecompressSCAN {
 		index = index + 8;
 		int pixel2 = Integer.parseInt(tmp, 2);
 
-		System.out.println("pixel1=" + pixel1);
-		System.out.println("pixel2=" + pixel2);
-
 		tmp = inputBits.substring(index, index + 32);
 		index = index + 32;
 		int buffSize0 = Integer.parseInt(tmp, 2);
-		
+
 		tmp = inputBits.substring(index, index + 32);
 		index = index + 32;
 		int buffSize1 = Integer.parseInt(tmp, 2);
-		
+
 		tmp = inputBits.substring(index, index + 32);
 		index = index + 32;
 		int buffSize2 = Integer.parseInt(tmp, 2);
-		
+
 		tmp = inputBits.substring(index, index + 32);
 		index = index + 32;
 		int buffSize3 = Integer.parseInt(tmp, 2);
-		
-		System.out.println("Buff0:"+buffSize0);
-		System.out.println("Buff1:"+buffSize1);
-		System.out.println("Buff2:"+buffSize2);
-		System.out.println("Buff3:"+buffSize3);
-		
+
 		/** PREDICTION ERRORS **/
-		System.out.println("Decodifica Arithmetic Coding...");
 		// decompressione arithmeticCoding
 		ArrayList<Integer> tmpList = new ArrayList<Integer>();
 		ArrayList<ArrayList<Integer>> buffersList = new ArrayList<ArrayList<Integer>>();
-		
+
 		flushInputStream();
 		byte[] bytes = new byte[buffSize0];
 		in.read(bytes);
 		AdaptiveArithmeticDecompress decomp = new AdaptiveArithmeticDecompress();
-		
+
 		decomp.decompress(bytes,tmpList);
-		System.out.println("Size 0: " + tmpList.size() );
 		buffersList.add(0,tmpList);
-		System.out.println(tmpList.toString());
 		tmpList= new ArrayList<Integer>();
-		
+
 		bytes = new byte[buffSize1];
 		in.read(bytes);
 		decomp.decompress(bytes,tmpList);
-		System.out.println("Size 1: " + tmpList.size() );
 		buffersList.add(1,tmpList);
-		System.out.println(tmpList.toString());
 		tmpList=new ArrayList<Integer>();
-		
+
 		bytes = new byte[buffSize2];
 		in.read(bytes);
 		decomp.decompress(bytes,tmpList);
-		System.out.println("Size 2: " + tmpList.size() );
 		buffersList.add(2,tmpList);
-		System.out.println(tmpList.toString());
 		tmpList=new ArrayList<Integer>();
-		
+
 		bytes = new byte[buffSize3];
 		in.read(bytes);
 		decomp.decompress(bytes,tmpList);
-		System.out.println("Size 3: " + tmpList.size() );
 		buffersList.add(3,tmpList);
-		
-		
-		/** IMAGE RECONSTRUCTION **/
 
-		System.out.println("Ricostruisco l'immagine...");
+
+		/** IMAGE RECONSTRUCTION **/
 		// creo una lista di Path in ordine sulla matrice
 		ArrayList<Path> pathSequence = createPathSequence(scanPathTypes);
 
@@ -173,8 +143,6 @@ public class DecompressSCAN {
 		}
 		File output = new File(outputPath);
 		ImageIO.write(outputImage, "bmp", output);
-		
-		System.out.println("Done!");
 
 	}
 
@@ -182,10 +150,10 @@ public class DecompressSCAN {
 		//prima di effettuare la decodifica pulisco il byte che sto andando a leggere
 		//da eventuali 0 aggiunti dal padding e che non appartengono al primo byte
 		//dei predictions error
-		
+
 		while(in.getNumBitsRemaining()!= 0)
 			in.read();
-		
+
 	}
 
 	private void populateMatrix(ArrayList<Path> pathSequence, int pixel1, int pixel2,
@@ -235,9 +203,6 @@ public class DecompressSCAN {
 				else
 					pixelVal = predErr + u;
 				if (pixelVal < 0) {
-					// System.out.println(predictionNeighbors[0] + " - " +
-					// predictionNeighbors[1]);
-					//System.out.println("PredErr=" + predErr);
 				}
 
 				matrix[actualPixel.x][actualPixel.y] = pixelVal;
@@ -379,7 +344,7 @@ public class DecompressSCAN {
 		int blocksToRead = (int) Math.pow(size / ConstantsScan.blockSize, 2);
 
 		ArrayList<String> scanPathTypes = new ArrayList<String>();
-		
+
 		while (blocksToRead > 0) {
 			String c = ""+in.read();
 			if (c.equals("0")) { // è un basic scanpath allora leggo 4 bit
@@ -408,13 +373,10 @@ public class DecompressSCAN {
 					KT += "3";
 
 				blocksToRead--;
-				// System.out.println(KT);
 				scanPathTypes.add(KT);
 
-			} else { // è uno scanpath composto quindi dovrò leggerne 4*4 = 16
-						// bit
+			} else { // è uno scanpath composto quindi dovrò leggerne 4*4 = 16 bit
 				String compositePath = "";
-				// System.out.print("(");
 				for (int i = 0; i < 4; i++) {
 					String k = ""+in.read();
 					k += ""+in.read();
@@ -446,17 +408,11 @@ public class DecompressSCAN {
 						KT += "3";
 
 					compositePath += KT;
-					// System.out.print(KT);
 				}
-				// System.out.println(")");
 				blocksToRead--;
 				scanPathTypes.add(compositePath);
 			}
 		}
-
-		/*for (String p : scanPathTypes) {
-			System.out.println(p);
-		}*/
 
 		return scanPathTypes;
 	}

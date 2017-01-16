@@ -1,11 +1,7 @@
 package main;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,8 +88,6 @@ public class CompressSCAN {
 			for (int xPixel = 0; xPixel < image.getHeight(); xPixel++, y++) {
 
 				int color = image.getRGB(xPixel, yPixel);
-				// System.out.println("Pixel [" + xPixel + "," + yPixel + "]: "
-				// + (color & 0xFF) );
 				matrix[x][y] = color & 0xFF;
 			}
 		}
@@ -191,9 +185,7 @@ public class CompressSCAN {
 	private BlockErrorOutput BlockError(Path path, Pixel PrevLastPixel) {
 
 		Pixel pixel; // prevPixel sarebbe il nostro pixel s
-		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of
-															// prediction error
-															// along P
+		ArrayList<Integer> L = new ArrayList<Integer>(); // Sequence L of prediction error along P
 
 		HashMap<String, String> tempScanned = new HashMap<String, String>();
 		// il primo pixel del blocco lo faccio fuori perchè prendo il
@@ -456,12 +448,6 @@ public class CompressSCAN {
 				buff3.add(predictionsError.get(i));
 		}
 
-		/*
-		buffSize0 = buff0.size();
-		buffSize1 = buff1.size();
-		buffSize2 = buff2.size();
-		buffSize3 = buff3.size();
-		*/
 		
 		AdaptiveArithmeticCompress comp = new AdaptiveArithmeticCompress();
 		
@@ -488,14 +474,12 @@ public class CompressSCAN {
 	private ArithmeticCodeOutput arithmeticCoding(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts) {
 		ArrayList<int[]> frequency = new ArrayList<int[]>();
 
-		String[] buffers = new String[4]; // buffer di stringhe binarie
-											// codificate
+		String[] buffers = new String[4]; // buffer di stringhe binarie codificate
 		double[] lowerbound = new double[4];
 		double[] highbound = new double[4];
 		int[] scale = new int[4];
-		int[] n = new int[4]; // dimensione dei buffer
-		double[] total = new double[4]; // totale da codificare, necessario per
-										// il calcolo della frequenza
+		int[] n = new int[4]; // dimensione dei buffer totale da codificare, necessario per il calcolo della frequenza
+		double[] total = new double[4];
 
 		// inizializzazione variabili
 		for (int i = 0; i < 4; i++) {
@@ -512,10 +496,7 @@ public class CompressSCAN {
 		}
 
 		int c = -1;
-		for (int index = 0; index < predictionsError.size(); index++) {// per
-																		// ogni
-																		// errore
-																		// e
+		for (int index = 0; index < predictionsError.size(); index++) {// per ogni errore e
 
 			int e = predictionsError.get(index);
 			c = contexts.get(index);
@@ -571,8 +552,7 @@ public class CompressSCAN {
 
 		for (int i = 0; i < 4; i++) {
 
-			// "output binary form of L(i) with scale(i) 1 after first bit into
-			// buffers(i)"
+			// "output binary form of L(i) with scale(i) 1 after first bit into buffers(i)"
 			String lower = Long.toBinaryString(Double.doubleToRawLongBits(lowerbound[i]));
 			String tmp = "";
 			for (int j = 0; j < scale[c]; j++)
@@ -583,8 +563,6 @@ public class CompressSCAN {
 			n[i] += scale[i] + toSave.length();
 		}
 
-		// out buffers and size n
-		// ArithmeticCodeOutput output = new ArithmeticCodeOutput();
 
 		return null;
 
