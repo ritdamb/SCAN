@@ -122,7 +122,9 @@ public class DecompressSCAN {
 		flushInputStream();
 		byte[] bytes = new byte[buffSize0];
 		in.read(bytes);
-		AdaptiveArithmeticDecompress decomp = new AdaptiveArithmeticDecompress(bytes,tmpList);
+		AdaptiveArithmeticDecompress decomp = new AdaptiveArithmeticDecompress();
+		
+		decomp.decompress(bytes,tmpList);
 		System.out.println("Size 0: " + tmpList.size() );
 		buffersList.add(0,tmpList);
 		System.out.println(tmpList.toString());
@@ -130,7 +132,7 @@ public class DecompressSCAN {
 		
 		bytes = new byte[buffSize1];
 		in.read(bytes);
-		decomp = new AdaptiveArithmeticDecompress(bytes,tmpList);
+		decomp.decompress(bytes,tmpList);
 		System.out.println("Size 1: " + tmpList.size() );
 		buffersList.add(1,tmpList);
 		System.out.println(tmpList.toString());
@@ -138,7 +140,7 @@ public class DecompressSCAN {
 		
 		bytes = new byte[buffSize2];
 		in.read(bytes);
-		decomp = new AdaptiveArithmeticDecompress(bytes,tmpList);
+		decomp.decompress(bytes,tmpList);
 		System.out.println("Size 2: " + tmpList.size() );
 		buffersList.add(2,tmpList);
 		System.out.println(tmpList.toString());
@@ -146,7 +148,7 @@ public class DecompressSCAN {
 		
 		bytes = new byte[buffSize3];
 		in.read(bytes);
-		decomp = new AdaptiveArithmeticDecompress(bytes,tmpList);
+		decomp.decompress(bytes,tmpList);
 		System.out.println("Size 3: " + tmpList.size() );
 		buffersList.add(3,tmpList);
 		

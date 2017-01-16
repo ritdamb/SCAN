@@ -49,19 +49,18 @@ public class AdaptiveArithmeticCompress {
 		}
 	}
 	
-	public AdaptiveArithmeticCompress(ArrayList<Integer> list, String f) throws IOException {
-		try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new FileOutputStream(new File(f))))) {
-			compress(list, out);
-		}
+	public AdaptiveArithmeticCompress() {
+		super();
 	}
 	
-	public AdaptiveArithmeticCompress(ArrayList<Integer> list) throws IOException {
+	public void compress(ArrayList<Integer> list) throws IOException{
 		try (BitOutputStream out = new BitOutputStream(new BufferedOutputStream(new ByteArrayOutputStream()))) {
 			compress(list, out);
 		}
 	}
 	
-	 private void compress(ArrayList<Integer> list, BitOutputStream out) throws IOException {
+	//custom compress
+	private void compress(ArrayList<Integer> list, BitOutputStream out) throws IOException {
 			FlatFrequencyTable initFreqs = new FlatFrequencyTable(513);
 			FrequencyTable freqs = new SimpleFrequencyTable(initFreqs);
 			ArithmeticEncoder enc = new ArithmeticEncoder(out);
@@ -76,10 +75,6 @@ public class AdaptiveArithmeticCompress {
 			
 			stream = enc.getStream();
 		}
-	
-	public ArrayList<Integer> getStream(){
-		return stream;
-	}
 	
 	// To allow unit testing, this method is package-private instead of private.
 	static void compress(InputStream in, BitOutputStream out) throws IOException {
@@ -96,6 +91,10 @@ public class AdaptiveArithmeticCompress {
 		}
 		enc.write(freqs, 256);  // EOF
 		enc.finish();  // Flush remaining code bits
+	}
+	
+	public ArrayList<Integer> getStream(){
+		return stream;
 	}
 	
 }

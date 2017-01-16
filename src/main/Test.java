@@ -10,7 +10,7 @@ public class Test {
 	
 		System.out.println("CODIFICO...");
 		
-		String fileName = "baboon.tiff";
+		String fileName = "lena512.bmp";
 
 		CompressSCAN compressor = new CompressSCAN("images/"+fileName, "output/"+fileName+".compressed");
 		compressor.compress(); // crea il file compress
