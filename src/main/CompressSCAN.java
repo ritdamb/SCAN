@@ -10,7 +10,6 @@ import javax.imageio.ImageIO;
 
 import ac.*;
 import io.Writer;
-import model.ArithmeticCodeOutput;
 import model.BestPathOutput;
 import model.Block;
 import model.BlockErrorOutput;
@@ -469,103 +468,6 @@ public class CompressSCAN {
 		
 		return list;
 		
-	}
-
-	private ArithmeticCodeOutput arithmeticCoding(ArrayList<Integer> predictionsError, ArrayList<Integer> contexts) {
-		ArrayList<int[]> frequency = new ArrayList<int[]>();
-
-		String[] buffers = new String[4]; // buffer di stringhe binarie codificate
-		double[] lowerbound = new double[4];
-		double[] highbound = new double[4];
-		int[] scale = new int[4];
-		int[] n = new int[4]; // dimensione dei buffer totale da codificare, necessario per il calcolo della frequenza
-		double[] total = new double[4];
-
-		// inizializzazione variabili
-		for (int i = 0; i < 4; i++) {
-			buffers[i] = "";
-			lowerbound[i] = 0;
-			highbound[i] = 1;
-			scale[i] = 0;
-			n[i] = 0;
-			total[i] = 511;
-			int[] f = new int[512];
-			for (int j = 0; j < 512; j++)
-				f[j] = 1;
-			frequency.add(f);
-		}
-
-		int c = -1;
-		for (int index = 0; index < predictionsError.size(); index++) {// per ogni errore e
-
-			int e = predictionsError.get(index);
-			c = contexts.get(index);
-
-			double range = highbound[c] - lowerbound[c];
-
-			double occurrence = 0;
-			for (int j = -255; j <= e - 1; j++) // calcolo l'occorenze
-				occurrence += frequency.get(c)[j + 255];
-
-			double lower = lowerbound[c] + range * (occurrence / total[c]); // lowebound
-
-			occurrence = 0;
-			for (int j = -255; j <= e; j++)
-				occurrence += frequency.get(c)[j + 255];
-
-			double high = lowerbound[c] + range * (occurrence / total[c]);// upperbound
-
-			lowerbound[c] = lower;
-			highbound[c] = high;
-
-			// codifica
-			while (true) {
-				if (highbound[c] < 0.5) {
-					buffers[c] += "0";
-					if (scale[c] != 0)
-						for (int i = 0; i < scale[c]; i++)
-							buffers[c] += "1";
-					lowerbound[c] = 2 * lowerbound[c];
-					highbound[c] = 2 * highbound[c];
-					n[c] += scale[c] + 1;
-					scale[c] = 0;
-				} else if (lowerbound[c] >= 0.5) {
-					buffers[c] += "1";
-					if (scale[c] != 0)
-						for (int i = 0; i < scale[c]; i++)
-							buffers[c] += "0";
-					lowerbound[c] = 2 * (lowerbound[c] - 0.5);
-					highbound[c] = 2 * (highbound[c] - 0.5);
-					n[c] += scale[c] + 1;
-					scale[c] = 0;
-				} else if (lowerbound[c] >= 0.25 && highbound[c] < 0.75) {
-					lowerbound[c] = 2 * (lowerbound[c] - 0.25);
-					highbound[c] = 2 * (highbound[c] - 0.25);
-					scale[c]++;
-				} else
-					break;
-			}
-
-			frequency.get(c)[e]++;
-			total[c]++;
-		}
-
-		for (int i = 0; i < 4; i++) {
-
-			// "output binary form of L(i) with scale(i) 1 after first bit into buffers(i)"
-			String lower = Long.toBinaryString(Double.doubleToRawLongBits(lowerbound[i]));
-			String tmp = "";
-			for (int j = 0; j < scale[c]; j++)
-				tmp += "1";
-			String toSave = lower.charAt(0) + tmp + lower.substring(1, lower.length());
-			buffers[i] += toSave;
-
-			n[i] += scale[i] + toSave.length();
-		}
-
-
-		return null;
-
 	}
 
 }

@@ -87,9 +87,7 @@ public class Block {
 				}
 			}
 		}
-		for(int i=0; i<blocks.size(); i++){
-			Block b = blocks.get(i);
-		}
+		
 		return blocks;
 	}
 	

@@ -2,16 +2,11 @@ package scanpaths;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 import model.Block;
 import model.Pixel;
 import model.Path;
-import model.Pixel;
 
 public class ScanPaths {
 
@@ -28,6 +23,7 @@ public class ScanPaths {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Path scanPath(int matrix[][], Block b,String kt){
 		
 		if(kt.equalsIgnoreCase("C0"))
@@ -56,8 +52,7 @@ public class ScanPaths {
 			return S3(matrix,b);
 		
 		int dim= b.length();
-		//controllare che kt � uno scanpath implementato
-
+		
 		ArrayList<Pixel> scan4 = populate(scanMap.get(kt), kt);
 		ArrayList<Pixel> scan= new ArrayList<Pixel>();
 		Method method;
@@ -433,8 +428,6 @@ public class ScanPaths {
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
-		int yEnd = b.getyEnd();
-		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		int n = b.length()/2;
@@ -608,7 +601,6 @@ public class ScanPaths {
 	
 	public Path S2 (int matrix[][], Block b){
 		int xStart = b.getxStart();
-		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
 		
@@ -698,10 +690,7 @@ public class ScanPaths {
 	
 	public Path S3 (int matrix[][], Block b){
 		int xStart = b.getxStart();
-		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
-		int yEnd = b.getyEnd();
-		
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
 		
 		int n = b.length()/2;
@@ -785,6 +774,7 @@ public class ScanPaths {
 	}
 	
 
+	@SuppressWarnings("unused")
 	private static ArrayList<Pixel> extendsO3(ArrayList<Pixel> scan4, int dim){
 		
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
@@ -844,6 +834,7 @@ public class ScanPaths {
 		return scan;
 }
 	
+	@SuppressWarnings("unused")
 	private static ArrayList<Pixel> extendsO2(ArrayList<Pixel> scan4,int dim){
 		
 		ArrayList<Pixel> scan = new ArrayList<Pixel>();
@@ -903,6 +894,7 @@ public class ScanPaths {
 		return scan;
 }
 	
+	@SuppressWarnings("unused")
 	private static ArrayList<Pixel> extendsO1(ArrayList<Pixel> scan4, int dim){
 		
 				ArrayList<Pixel> scan = new ArrayList<Pixel>();
@@ -962,6 +954,7 @@ public class ScanPaths {
 				return scan;
 	}
 	
+	@SuppressWarnings("unused")
 	private static ArrayList<Pixel> extendsO0(ArrayList<Pixel> scan4, int dim){
 		
 				ArrayList<Pixel> scan = new ArrayList<Pixel>();
