@@ -24,7 +24,7 @@ public class Main {
 		}
 
 		else {
-			if(args.length < 2 || args.length > 2)
+			if(args.length < 2 || args.length > 3)
 				System.out.println("Bad Parameters");
 			else{
 				if(args[0].equals("-c")){
