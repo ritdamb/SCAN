@@ -14,7 +14,7 @@ public class Writer {
 		super();
 	}
 	
-	public void writeImage (int size, String encScanPath, int pixel1, int pixel2, int n0,int n1, int n2, int n3, ArrayList<Integer> stream ){
+	public void writeImage (String pathOutFile, int size, String encScanPath, int pixel1, int pixel2, int n0,int n1, int n2, int n3, ArrayList<Integer> stream ){
 		
 		//calcolo N
 		int n = (int) (Math.log(size) / Math.log(2));
@@ -42,7 +42,7 @@ public class Writer {
 		*/
 		FileOutputStream file=null;
 		try {
-			file = new FileOutputStream("compress");
+			file = new FileOutputStream(pathOutFile);
 			BitOutputStream out = new BitOutputStream(file);
 			
 			String toWrite = header1+encScanPath+header2+header3;

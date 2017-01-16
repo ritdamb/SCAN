@@ -32,6 +32,7 @@ public class CompressSCAN {
 	private int[][] matrix;
 	private ArrayList<Block> blocks;
 	private int buffSize0,buffSize1,buffSize2,buffSize3;
+	private String pathOutFile;
 	
 	public CompressSCAN(String pathInputFile, String pathOutFile) throws IOException {
 
@@ -40,6 +41,7 @@ public class CompressSCAN {
 		v_pixel = null;
 		matrix = loadImage(ImageIO.read(new File(pathInputFile)));
 		blocks = Block.getBlocks(matrix, ConstantsScan.blockSize);
+		this.pathOutFile = pathOutFile;
 	}
 
 	public void compress() throws IOException {
@@ -77,7 +79,7 @@ public class CompressSCAN {
 		// scrivo i byte nel file
 		Writer writer = new Writer();
 
-		writer.writeImage(matrix.length, encodeScanPaths, first_pixel, second_pixel,
+		writer.writeImage(pathOutFile, matrix.length, encodeScanPaths, first_pixel, second_pixel,
 				buffSize0,buffSize1,buffSize2,buffSize3,stream);
 
 	}

@@ -9,13 +9,15 @@ public class Test {
 	public static void main(String[] args) throws IOException{
 	
 		System.out.println("CODIFICO...");
+		
+		String fileName = "baboon.tiff";
 
-		CompressSCAN compressor = new CompressSCAN("lena512.bmp", "compress");
+		CompressSCAN compressor = new CompressSCAN("images/"+fileName, "output/"+fileName+".compressed");
 		compressor.compress(); // crea il file compress
 		
 		System.out.println("DECODIFICO...");
 
-		DecompressSCAN decompressor = new DecompressSCAN("compress", "output.bmp");
+		DecompressSCAN decompressor = new DecompressSCAN("output/"+fileName+".compressed", "output/"+fileName);
 		decompressor.decompress();
 		
 		
