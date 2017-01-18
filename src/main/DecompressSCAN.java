@@ -21,7 +21,7 @@ public class DecompressSCAN {
 
 	private HashMap<String, String> scannedPixel;
 	private String inputPath, outputPath;
-	private int[][] matrix;
+	private Color[][] matrix;
 	private BitInputStream in;
 
 	public DecompressSCAN(String compressFile, String outputFile) throws FileNotFoundException {
@@ -49,7 +49,7 @@ public class DecompressSCAN {
 		int size = (int) Math.pow(2, n);
 
 		// inizializzo la matrice
-		matrix = new int[size][size];
+		matrix = new Color[size][size];
 
 		/** SCANPATHS **/
 		//System.out.println("Decodifico Scanpaths...");
@@ -68,14 +68,33 @@ public class DecompressSCAN {
 			i++;
 		}
 
+		int[] pixel1 = new int[3];
+		int[] pixel2 = new int[3];
+		
 		int index=0;
 		String tmp = inputBits.substring(index, index + 8);
 		index = index + 8;
-		int pixel1 = Integer.parseInt(tmp, 2);
+		pixel1[0] = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 8);
+		index = index + 8;
+		pixel1[1] = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 8);
+		index = index + 8;
+		pixel1[2] = Integer.parseInt(tmp, 2);
 
 		tmp = inputBits.substring(index, index + 8);
 		index = index + 8;
-		int pixel2 = Integer.parseInt(tmp, 2);
+		pixel2[0] = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 8);
+		index = index + 8;
+		pixel2[1] = Integer.parseInt(tmp, 2);
+		
+		tmp = inputBits.substring(index, index + 8);
+		index = index + 8;
+		pixel2[2] = Integer.parseInt(tmp, 2);
 
 		tmp = inputBits.substring(index, index + 32);
 		index = index + 32;
@@ -131,13 +150,11 @@ public class DecompressSCAN {
 
 		populateMatrix(pathSequence, pixel1, pixel2, buffersList);
 
-		BufferedImage outputImage = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
+		BufferedImage outputImage = new BufferedImage(size, size, BufferedImage.TYPE_3BYTE_BGR);
 
 		for (int k = 0; k < size; k++) {
 			for (int j = 0; j < size; j++) {
-				int a = matrix[k][j];
-
-				Color newColor = new Color(a, a, a);
+				Color newColor = matrix[k][j];
 				outputImage.setRGB(j, k, newColor.getRGB());
 			}
 		}
@@ -156,56 +173,65 @@ public class DecompressSCAN {
 
 	}
 
-	private void populateMatrix(ArrayList<Path> pathSequence, int pixel1, int pixel2,
+	private void populateMatrix(ArrayList<Path> pathSequence, int[] pixel1, int[] pixel2,
 			ArrayList<ArrayList<Integer>> buffersList) {
 
 		int index0 = 2;
 		int index1 = 0;
 		int index2 = 0;
 		int index3 = 0;
-		int v = pixel1;
-		int u = pixel2;
+		int[] v = pixel1;
+		int[] u = pixel2;
 
 		for (int a = 0; a < pathSequence.size(); a++) {
 			ArrayList<Pixel> p = pathSequence.get(a).getPath();
 			Pixel actualPixel;
 			int b = 0;
 			if (a == 0) {
-				matrix[p.get(0).x][p.get(0).y] = pixel1;
-				matrix[p.get(1).x][p.get(1).y] = pixel2;
+				matrix[p.get(0).x][p.get(0).y] = new Color(pixel1[0], pixel1[1], pixel1[2]);
+				matrix[p.get(1).x][p.get(1).y] = new Color(pixel2[0], pixel2[1], pixel2[2]);
 				scannedPixel.put(p.get(0).x + "-" + p.get(0).y, null);
 				scannedPixel.put(p.get(1).x + "-" + p.get(1).y, null);
 				b = 2;
 
 			}
 			for (; b < p.size(); b++) {
-				int[] neighbors;
+				int[][] neighbors;
 				actualPixel = p.get(b);
-				int predErr, e;
-				if ((neighbors = contextNeighbors(actualPixel, matrix)) != null)
-					e = (Math.abs(neighbors[0] - neighbors[1]) + Math.abs(neighbors[1] - neighbors[2])) / 2;
-				else
-					e = Math.abs(u - v);
-
-				if (e >= 0 && e <= 2)
-					predErr = buffersList.get(0).get(index0++);
-				else if (e >= 3 && e <= 8)
-					predErr = buffersList.get(1).get(index1++);
-				else if (e >= 9 && e <= 15)
-					predErr = buffersList.get(2).get(index2++);
-				else
-					predErr = buffersList.get(3).get(index3++);
-
-				int[] predictionNeighbors = predictionNeighbors(actualPixel, matrix);
-				int pixelVal;
-				if (predictionNeighbors != null)
-					pixelVal = predErr + (predictionNeighbors[0] + predictionNeighbors[1]) / 2;
-				else
-					pixelVal = predErr + u;
-				if (pixelVal < 0) {
+				int[] e = new int[3];
+				int[] predErr = new int[3];
+				if ((neighbors = contextNeighbors(actualPixel, matrix)) != null){
+					e[0] = (Math.abs(neighbors[0][0] - neighbors[1][0]) + Math.abs(neighbors[1][0] - neighbors[2][0])) / 2;
+					e[1] = (Math.abs(neighbors[0][1] - neighbors[1][1]) + Math.abs(neighbors[1][1] - neighbors[2][1])) / 2;
+					e[2] = (Math.abs(neighbors[0][2] - neighbors[1][2]) + Math.abs(neighbors[1][2] - neighbors[2][2])) / 2;
+				}
+				else{
+					e[0] = Math.abs(u[0] - v[0]);
+					e[1] = Math.abs(u[1] - v[1]);
+					e[2] = Math.abs(u[2] - v[2]);
+				}
+				
+				for(int i=0; i<3; i++){
+					if (e[i] >= 0 && e[i] <= 2)
+						predErr[i] = buffersList.get(0).get(index0++);
+					else if (e[i] >= 3 && e[i] <= 8)
+						predErr[i] = buffersList.get(1).get(index1++);
+					else if (e[i] >= 9 && e[i] <= 15)
+						predErr[i] = buffersList.get(2).get(index2++);
+					else
+						predErr[i] = buffersList.get(3).get(index3++);
 				}
 
-				matrix[actualPixel.x][actualPixel.y] = pixelVal;
+				int[][] predictionNeighbors = predictionNeighbors(actualPixel, matrix);
+				int[] pixelVal = new int[3];
+				for(int i=0; i<3; i++){
+					if (predictionNeighbors != null)
+						pixelVal[i] = predErr[i] + (predictionNeighbors[0][i] + predictionNeighbors[1][i]) / 2;
+					else
+						pixelVal[i] = predErr[i] + u[i];
+				}
+
+				matrix[actualPixel.x][actualPixel.y] = new Color(pixelVal[0], pixelVal[1], pixelVal[2]);
 
 				v = u;
 				u = pixelVal;
@@ -217,17 +243,25 @@ public class DecompressSCAN {
 
 	}
 
-	private int[] contextNeighbors(Pixel p, int matrix[][]) {
-		int[] neighbors = new int[3];
+	private int[][] contextNeighbors(Pixel p, Color matrix[][]) {
+		int[][] neighbors = new int[3][3];
 		if (p.getPredictor().equals("UR")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(-1, 1);
 			Pixel s = p.transform(0, 1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+					
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("UL")) {
@@ -236,9 +270,17 @@ public class DecompressSCAN {
 			Pixel s = p.transform(0, -1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+					
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BR")) {
@@ -247,9 +289,17 @@ public class DecompressSCAN {
 			Pixel s = p.transform(0, 1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+					
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BL")) {
@@ -258,9 +308,17 @@ public class DecompressSCAN {
 			Pixel s = p.transform(0, -1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+					
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		}
@@ -268,38 +326,58 @@ public class DecompressSCAN {
 		return neighbors;
 	}
 
-	private int[] predictionNeighbors(Pixel p, int matrix[][]) {
-		int[] neighbors = new int[2];
+	private int[][] predictionNeighbors(Pixel p, Color matrix[][]) {
+		int[][] neighbors = new int[2][3];
 		if (p.getPredictor().equals("UR")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, 1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("UL")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, -1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BR")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, 1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BL")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, -1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
 			} else
 				return null;
 		}
@@ -318,7 +396,7 @@ public class DecompressSCAN {
 		Path prevPath = null;
 		for (int z = 0; z < scanPathTypes.size(); z++) {
 			if (scanPathTypes.get(z).length() == 2) {
-				Path b_path = sp.scanPath(matrix, blocks.get(z), scanPathTypes.get(z));
+				Path b_path = sp.scanPath(blocks.get(z), scanPathTypes.get(z));
 				b_path.setPreviousPath(prevPath);
 				pathSequence.add(b_path);
 				prevPath = b_path;
@@ -326,7 +404,7 @@ public class DecompressSCAN {
 				Block[] blks = Block.splitBlock(blocks.get(z));
 				String subPaths[] = scanPathTypes.get(z).split(",");
 				for (int y = 0; y < 4; y++) {
-					Path b_path = sp.scanPath(matrix, blks[y], subPaths[y]);
+					Path b_path = sp.scanPath(blks[y], subPaths[y]);
 					b_path.setPreviousPath(prevPath);
 					pathSequence.add(b_path);
 					prevPath = b_path;

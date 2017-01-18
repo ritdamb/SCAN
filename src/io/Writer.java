@@ -13,7 +13,7 @@ public class Writer {
 		super();
 	}
 	
-	public void writeImage (String pathOutFile, int size, String encScanPath, int pixel1, int pixel2, int n0,int n1, int n2, int n3, ArrayList<Integer> stream ){
+	public void writeImage (String pathOutFile, int size, String encScanPath, int[] first_pixel, int[] second_pixel, int n0,int n1, int n2, int n3, ArrayList<Integer> stream ){
 		
 		//calcolo N
 		int n = (int) (Math.log(size) / Math.log(2));
@@ -25,8 +25,13 @@ public class Writer {
 		
 		String header1 = encodedSize;
 		
-		String s1 = String.format("%8s", Integer.toBinaryString(pixel1)).replace(' ', '0');
-		String s2 = String.format("%8s", Integer.toBinaryString(pixel2)).replace(' ', '0');
+		String s1 = String.format("%8s", Integer.toBinaryString(first_pixel[0])).replace(' ', '0');
+		s1 += String.format("%8s", Integer.toBinaryString(first_pixel[1])).replace(' ', '0');
+		s1 += String.format("%8s", Integer.toBinaryString(first_pixel[2])).replace(' ', '0');
+		
+		String s2 = String.format("%8s", Integer.toBinaryString(second_pixel[0])).replace(' ', '0');		
+		s2 += String.format("%8s", Integer.toBinaryString(second_pixel[1])).replace(' ', '0');
+		s2 += String.format("%8s", Integer.toBinaryString(second_pixel[2])).replace(' ', '0');
 		
 		String bs0 = String.format("%32s", Integer.toBinaryString(n0)).replace(' ', '0');
 		String bs1 = String.format("%32s", Integer.toBinaryString(n1)).replace(' ', '0');

@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 public class Block {
@@ -61,7 +62,7 @@ public class Block {
 		return "xStart="+xStart+" xEnd="+xEnd+" yStart="+yStart+" yEnd="+yEnd;
 	}
 	
-	public static ArrayList<Block> getBlocks (int matrix[][], int N){
+	public static ArrayList<Block> getBlocks (Color matrix[][], int N){
 		int len = matrix.length;
 		ArrayList<Block> blocks = new ArrayList<Block>();
 

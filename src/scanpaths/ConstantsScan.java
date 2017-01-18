@@ -13,6 +13,6 @@ public class ConstantsScan {
 	public static final int minimumBlockSize=16;
 	public static final int blockSize=32;
 	public static final int header1BitSize=3;
-	public static final int header2BitSize=144;
+	public static final int header2BitSize=176;
 
 }

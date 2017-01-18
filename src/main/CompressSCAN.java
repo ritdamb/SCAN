@@ -1,9 +1,11 @@
 package main;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -23,8 +25,9 @@ public class CompressSCAN {
 	private HashMap<String, String> scannedPixel;
 	private Pixel u_pixel;
 	private Pixel v_pixel;
-	private int first_pixel, second_pixel;
-	private int[][] matrix;
+	private int[] first_pixel = new int[3];
+	private int[] second_pixel = new int[3];
+	private Color[][] matrix;
 	private ArrayList<Block> blocks;
 	private int buffSize0,buffSize1,buffSize2,buffSize3;
 	private String pathOutFile;
@@ -79,15 +82,17 @@ public class CompressSCAN {
 
 	}
 
-	private int[][] loadImage(BufferedImage image) {
-		int[][] matrix = new int[image.getWidth()][image.getHeight()];
+	private Color[][] loadImage(BufferedImage image) {
+		Color[][] matrix = new Color[image.getWidth()][image.getHeight()];
 		int x = 0, y = 0;
 		for (int yPixel = 0; yPixel < image.getWidth(); yPixel++, x++) {
 			y = 0;
 			for (int xPixel = 0; xPixel < image.getHeight(); xPixel++, y++) {
 
 				int color = image.getRGB(xPixel, yPixel);
-				matrix[x][y] = color & 0xFF;
+				Color c = new Color(color);
+				//matrix[x][y] = color & 0xFF;
+				matrix[x][y] = c;
 			}
 		}
 		return matrix;
@@ -107,7 +112,7 @@ public class CompressSCAN {
 		for (int i = 0; i < k.length; i++) {
 			for (t = 0; t < ConstantsScan.maxDirectionScan; t++) {
 
-				path = s.scanPath(matrix, block, "" + k[i] + t);
+				path = s.scanPath(block, "" + k[i] + t);
 				beo = BlockError(path, prevLastPixel);
 
 				if (beo.getE() < minError || minError == -1) {
@@ -191,14 +196,19 @@ public class CompressSCAN {
 		// PrevLastPixel che è l'ultimo dello scanpath precendente
 		// poi invece prendo il pixel precedente (i-1)
 		pixel = path.getPixel(0);
-		int err = calcPredictionErr(pixel, PrevLastPixel, tempScanned);
-		L.add(err);
+		int[] err = calcPredictionErr(pixel, PrevLastPixel, tempScanned);
+		L.add(err[0]);
+		L.add(err[1]);
+		L.add(err[2]);
 		tempScanned.put(pixel.x + "-" + pixel.y, null);
 
 		for (int i = 1; i < path.size(); i++) {
 			pixel = path.getPixel(i);
-			int e = calcPredictionErr(pixel, path.getPixel(i - 1), tempScanned);
-			L.add(e);
+			int[] e = calcPredictionErr(pixel, path.getPixel(i - 1), tempScanned);
+			L.add(e[0]);
+			L.add(e[1]);
+			L.add(e[2]);
+			
 			tempScanned.put(pixel.x + "-" + pixel.y, null);
 		}
 
@@ -212,38 +222,58 @@ public class CompressSCAN {
 		return beo;
 	}
 
-	private int[] predictionNeighbors(Pixel p, HashMap<String, String> tempScanned) {
-		int[] neighbors = new int[2];
+	private int[][] predictionNeighbors(Pixel p, HashMap<String, String> tempScanned) {
+		int[][] neighbors = new int[2][3];
 		if (p.getPredictor().equals("UR")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, 1);
 			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = (matrix[q.x][q.y]).getRed();
+				neighbors[0][1] = (matrix[q.x][q.y]).getGreen();
+				neighbors[0][2] = (matrix[q.x][q.y]).getBlue();
+				
+				neighbors[1][0] = (matrix[r.x][r.y]).getRed();
+				neighbors[1][1] = (matrix[r.x][r.y]).getGreen();
+				neighbors[1][2] = (matrix[r.x][r.y]).getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("UL")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(0, -1);
 			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = (matrix[q.x][q.y]).getRed();
+				neighbors[0][1] = (matrix[q.x][q.y]).getGreen();
+				neighbors[0][2] = (matrix[q.x][q.y]).getBlue();
+				
+				neighbors[1][0] = (matrix[r.x][r.y]).getRed();
+				neighbors[1][1] = (matrix[r.x][r.y]).getGreen();
+				neighbors[1][2] = (matrix[r.x][r.y]).getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BR")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, 1);
 			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = (matrix[q.x][q.y]).getRed();
+				neighbors[0][1] = (matrix[q.x][q.y]).getGreen();
+				neighbors[0][2] = (matrix[q.x][q.y]).getBlue();
+				
+				neighbors[1][0] = (matrix[r.x][r.y]).getRed();
+				neighbors[1][1] = (matrix[r.x][r.y]).getGreen();
+				neighbors[1][2] = (matrix[r.x][r.y]).getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BL")) {
 			Pixel q = p.transform(1, 0);
 			Pixel r = p.transform(0, -1);
 			if (isScannedPixel(tempScanned, q) && isScannedPixel(tempScanned, r)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
+				neighbors[0][0] = (matrix[q.x][q.y]).getRed();
+				neighbors[0][1] = (matrix[q.x][q.y]).getGreen();
+				neighbors[0][2] = (matrix[q.x][q.y]).getBlue();
+				
+				neighbors[1][0] = (matrix[r.x][r.y]).getRed();
+				neighbors[1][1] = (matrix[r.x][r.y]).getGreen();
+				neighbors[1][2] = (matrix[r.x][r.y]).getBlue();
 			} else
 				return null;
 		}
@@ -251,18 +281,32 @@ public class CompressSCAN {
 		return neighbors;
 	}
 
-	private int calcPredictionErr(Pixel actualPixel, Pixel prevPixel, HashMap<String, String> tempScanned) {
+	private int[] calcPredictionErr(Pixel actualPixel, Pixel prevPixel, HashMap<String, String> tempScanned) {
 
-		int[] neighbors = predictionNeighbors(actualPixel, tempScanned);
+		int e[] = new int[3];
+		int[][] neighbors = predictionNeighbors(actualPixel, tempScanned);
 		if (neighbors != null) {
-			return matrix[actualPixel.x][actualPixel.y] - ((neighbors[0] + neighbors[1]) / 2);
+			e[0] = matrix[actualPixel.x][actualPixel.y].getRed() - ((neighbors[0][0] + neighbors[1][0]) / 2);
+			e[1] = matrix[actualPixel.x][actualPixel.y].getGreen() - ((neighbors[0][1] + neighbors[1][1]) / 2);
+			e[2] = matrix[actualPixel.x][actualPixel.y].getBlue() - ((neighbors[0][2] + neighbors[1][2]) / 2);
+			return e;
 		} else {
 			if (prevPixel == null) {
-				return 0;
+				Arrays.fill(e, 0);
+				return e;
 			}
-			int pVal = matrix[actualPixel.x][actualPixel.y];
-			int sVal = matrix[prevPixel.x][prevPixel.y];
-			int e = pVal - sVal;
+			int pVal = matrix[actualPixel.x][actualPixel.y].getRed();
+			int sVal = matrix[prevPixel.x][prevPixel.y].getRed();
+			e[0] = pVal - sVal;
+			
+			pVal = matrix[actualPixel.x][actualPixel.y].getGreen();
+			sVal = matrix[prevPixel.x][prevPixel.y].getGreen();
+			e[1] = pVal - sVal;
+			
+			pVal = matrix[actualPixel.x][actualPixel.y].getBlue();
+			sVal = matrix[prevPixel.x][prevPixel.y].getBlue();
+			e[2] = pVal - sVal;
+			
 			return e;
 		}
 
@@ -279,22 +323,30 @@ public class CompressSCAN {
 				if (v_pixel == null || u_pixel == null) {
 					L.add(0);
 					if (v_pixel == null) {
-						first_pixel = matrix[pixel.x][pixel.y];
+						first_pixel[0] = matrix[pixel.x][pixel.y].getRed();
+						first_pixel[1] = matrix[pixel.x][pixel.y].getGreen();
+						first_pixel[2] = matrix[pixel.x][pixel.y].getBlue();
+						
 						v_pixel = pixel;
 					} else {
-						second_pixel = matrix[pixel.x][pixel.y];
+						second_pixel[0] = matrix[pixel.x][pixel.y].getRed();
+						second_pixel[1] = matrix[pixel.x][pixel.y].getGreen();
+						second_pixel[2] = matrix[pixel.x][pixel.y].getBlue();
+						
 						u_pixel = pixel;
 					}
 				} else {
-					int e = calcContext(pixel);
-					if (e >= 0 && e <= 2)
-						L.add(0);
-					else if (e >= 3 && e <= 8)
-						L.add(1);
-					else if (e >= 9 && e <= 15)
-						L.add(2);
-					else
-						L.add(3);
+					int[] err = calcContext(pixel);
+					for(int e: err){
+						if (e >= 0 && e <= 2)
+							L.add(0);
+						else if (e >= 3 && e <= 8)
+							L.add(1);
+						else if (e >= 9 && e <= 15)
+							L.add(2);
+						else
+							L.add(3);
+					}
 				}
 
 				scannedPixel.put(pixel.x + "-" + pixel.y, null);
@@ -308,17 +360,25 @@ public class CompressSCAN {
 		return L;
 	}
 
-	private int[] contextNeighbors(Pixel p) {
-		int[] neighbors = new int[3];
+	private int[][] contextNeighbors(Pixel p) {
+		int[][] neighbors = new int[3][3];
 		if (p.getPredictor().equals("UR")) {
 			Pixel q = p.transform(-1, 0);
 			Pixel r = p.transform(-1, 1);
 			Pixel s = p.transform(0, 1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("UL")) {
@@ -327,9 +387,17 @@ public class CompressSCAN {
 			Pixel s = p.transform(0, -1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BR")) {
@@ -338,9 +406,17 @@ public class CompressSCAN {
 			Pixel s = p.transform(0, 1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		} else if (p.getPredictor().equals("BL")) {
@@ -349,9 +425,17 @@ public class CompressSCAN {
 			Pixel s = p.transform(0, -1);
 			if (scannedPixel.containsKey(q.x + "-" + q.y) && scannedPixel.containsKey(r.x + "-" + r.y)
 					&& scannedPixel.containsKey(s.x + "-" + s.y)) {
-				neighbors[0] = matrix[q.x][q.y];
-				neighbors[1] = matrix[r.x][r.y];
-				neighbors[2] = matrix[s.x][s.y];
+				neighbors[0][0] = matrix[q.x][q.y].getRed();
+				neighbors[0][1] = matrix[q.x][q.y].getGreen();
+				neighbors[0][2] = matrix[q.x][q.y].getBlue();
+				
+				neighbors[1][0] = matrix[r.x][r.y].getRed();
+				neighbors[1][1] = matrix[r.x][r.y].getGreen();
+				neighbors[1][2] = matrix[r.x][r.y].getBlue();
+				
+				neighbors[2][0] = matrix[s.x][s.y].getRed();
+				neighbors[2][1] = matrix[s.x][s.y].getGreen();
+				neighbors[2][2] = matrix[s.x][s.y].getBlue();
 			} else
 				return null;
 		}
@@ -359,15 +443,28 @@ public class CompressSCAN {
 		return neighbors;
 	}
 
-	private int calcContext(Pixel actualPixel) {
+	private int[] calcContext(Pixel actualPixel) {
 
-		int[] neighbors = contextNeighbors(actualPixel);
-		if (neighbors != null)
-			return (Math.abs(neighbors[0] - neighbors[1]) + Math.abs(neighbors[1] - neighbors[2])) / 2;
+		int[][] neighbors = contextNeighbors(actualPixel);
+		int[] e = new int[3];
+		if (neighbors != null){
+			e[0] = (Math.abs(neighbors[0][0] - neighbors[1][0]) + Math.abs(neighbors[1][0] - neighbors[2][0])) / 2;
+			e[1] = (Math.abs(neighbors[0][1] - neighbors[1][1]) + Math.abs(neighbors[1][1] - neighbors[2][1])) / 2; 
+			e[2] = (Math.abs(neighbors[0][2] - neighbors[1][2]) + Math.abs(neighbors[1][2] - neighbors[2][2])) / 2;
+			return e;
+		}
 		else {
-			int uVal = matrix[u_pixel.x][u_pixel.y];
-			int vVal = matrix[v_pixel.x][v_pixel.y];
-			int e = Math.abs(uVal - vVal);
+			int uVal = matrix[u_pixel.x][u_pixel.y].getRed();
+			int vVal = matrix[v_pixel.x][v_pixel.y].getRed();		 
+			e[0] = Math.abs(uVal - vVal);
+			
+			uVal = matrix[u_pixel.x][u_pixel.y].getGreen();
+			vVal = matrix[v_pixel.x][v_pixel.y].getGreen();		 
+			e[1] = Math.abs(uVal - vVal);
+			
+			uVal = matrix[u_pixel.x][u_pixel.y].getBlue();
+			vVal = matrix[v_pixel.x][v_pixel.y].getBlue();		 
+			e[2] = Math.abs(uVal - vVal);
 			return e;
 		}
 

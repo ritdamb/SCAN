@@ -2,6 +2,7 @@ package scanpaths;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.awt.Color;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import model.Block;
@@ -24,32 +25,32 @@ public class ScanPaths {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Path scanPath(int matrix[][], Block b,String kt){
+	public Path scanPath(Block b,String kt){
 		
 		if(kt.equalsIgnoreCase("C0"))
-			return C0(matrix,b);
+			return C0(b);
 		else if(kt.equalsIgnoreCase("C1"))
-			return C1(matrix,b);
+			return C1(b);
 		else if(kt.equalsIgnoreCase("C2"))
-			return C2(matrix,b);
+			return C2(b);
 		else if(kt.equalsIgnoreCase("C3"))
-			return C3(matrix,b);
+			return C3(b);
 		else if(kt.equalsIgnoreCase("D0"))
-			return D0(matrix,b);
+			return D0(b);
 		else if(kt.equalsIgnoreCase("D1"))
-			return D1(matrix,b);
+			return D1(b);
 		else if(kt.equalsIgnoreCase("D2"))
-			return D2(matrix,b);
+			return D2(b);
 		else if(kt.equalsIgnoreCase("D3"))
-			return D3(matrix,b);
+			return D3(b);
 		else if(kt.equalsIgnoreCase("S0"))
-			return S0(matrix,b);
+			return S0(b);
 		else if(kt.equalsIgnoreCase("S1"))
-			return S1(matrix,b);
+			return S1(b);
 		else if(kt.equalsIgnoreCase("S2"))
-			return S2(matrix,b);
+			return S2(b);
 		else if(kt.equalsIgnoreCase("S3"))
-			return S3(matrix,b);
+			return S3(b);
 		
 		int dim= b.length();
 		
@@ -84,11 +85,11 @@ public class ScanPaths {
 			throw new IllegalArgumentException(kt+ " non valido");
 		}
 		
-		return scanOnImage(scan,b,matrix,direction);
+		return scanOnImage(scan,b,direction);
 	
 	}
 	
-	private Path C0(int matrix[][], Block b){
+	private Path C0(Block b){
 		
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
@@ -124,7 +125,7 @@ public class ScanPaths {
 		return new Path(ConstantsScan.NORTH_EAST, path, "C0");
 	}
 	
-	private Path C1(int matrix[][], Block b){
+	private Path C1(Block b){
 		
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
@@ -160,7 +161,7 @@ public class ScanPaths {
 	}
 	
 	
-	private Path C2(int matrix[][], Block b){
+	private Path C2(Block b){
 		
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
@@ -195,7 +196,7 @@ public class ScanPaths {
 		return new Path(ConstantsScan.SOUTH_WEST, path, "C2");
 	}
 	
-	private Path C3(int matrix[][], Block b){
+	private Path C3(Block b){
 		
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
@@ -231,7 +232,7 @@ public class ScanPaths {
 		return new Path(ConstantsScan.SOUTH_WEST, path, "C3");
 	}
 	
-	public Path D0 (int matrix[][], Block b){
+	public Path D0 (Block b){
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
@@ -279,7 +280,7 @@ public class ScanPaths {
 		return new Path(ConstantsScan.NORTH_EAST, path, "D0");
 	}
 	
-	public Path D1 (int matrix[][], Block b){
+	public Path D1 (Block b){
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
@@ -328,7 +329,7 @@ public class ScanPaths {
 	}
 	
 	
-	public Path D2 (int matrix[][], Block b){
+	public Path D2 (Block b){
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
@@ -376,7 +377,7 @@ public class ScanPaths {
 		return new Path(ConstantsScan.SOUTH_WEST, path, "D2");
 	}
 	
-	public Path D3 (int matrix[][], Block b){
+	public Path D3 (Block b){
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
@@ -424,7 +425,7 @@ public class ScanPaths {
 		return new Path(ConstantsScan.SOUTH_EAST, path, "D3");
 	}
 	
-	public Path S0 (int matrix[][], Block b){
+	public Path S0 (Block b){
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
@@ -511,7 +512,7 @@ public class ScanPaths {
 		return new Path("", path, "S0"); 
 	}
 	
-	public Path S1 (int matrix[][], Block b){
+	public Path S1 (Block b){
 		int xStart = b.getxStart();
 		int xEnd = b.getxEnd();
 		int yStart = b.getyStart();
@@ -599,7 +600,7 @@ public class ScanPaths {
 		return new Path("", path, "S1"); 
 	}
 	
-	public Path S2 (int matrix[][], Block b){
+	public Path S2 (Block b){
 		int xStart = b.getxStart();
 		int yStart = b.getyStart();
 		int yEnd = b.getyEnd();
@@ -688,7 +689,7 @@ public class ScanPaths {
 	}
 	
 	
-	public Path S3 (int matrix[][], Block b){
+	public Path S3 (Block b){
 		int xStart = b.getxStart();
 		int yStart = b.getyStart();
 		ArrayList<Pixel> path = new ArrayList<Pixel>();
@@ -1015,7 +1016,7 @@ public class ScanPaths {
 				return scan;
 	}
 	
-	private static Path scanOnImage(ArrayList<Pixel> scan8, Block block, int[][] matrix, String direction) {
+	private static Path scanOnImage(ArrayList<Pixel> scan8, Block block, String direction) {
 		int i=0;
 		int x1=0,y1=0,posx=0,posy=0,x2=0,y2=0,xStart=0,yStart=0;
 		Pixel p = scan8.get(i); 
@@ -1040,9 +1041,6 @@ public class ScanPaths {
 			pred="BR";
 		}
 		
-		//non controllo che parto da noth-east poi va inserito
-		//int pixel = matrix[xStart][yStart];
-		//System.out.println("["+ xStart+"]["+yStart +"]:" + pixel);
 		Pixel p1 = new Pixel(xStart,yStart, pred);
 		path.add(p1);
 
@@ -1061,11 +1059,8 @@ public class ScanPaths {
 			int y=posy+(y2-y1);
 			p1 = p1.transform(x2-x1,y2-y1);
 			
-			
-			//path.add(new Pixel(x,y));
 			path.add(p1);
-			//System.out.println("["+x+"]["+y+"]:" + matrix[x][y]);
-			
+		
 			posx=x;
 			posy=y;
 			x1=x2;
