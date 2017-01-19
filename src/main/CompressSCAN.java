@@ -322,6 +322,8 @@ public class CompressSCAN {
 				pixel = p.getPixel(i);
 				if (v_pixel == null || u_pixel == null) {
 					L.add(0);
+					L.add(0);
+					L.add(0);
 					if (v_pixel == null) {
 						first_pixel[0] = matrix[pixel.x][pixel.y].getRed();
 						first_pixel[1] = matrix[pixel.x][pixel.y].getGreen();

@@ -176,7 +176,7 @@ public class DecompressSCAN {
 	private void populateMatrix(ArrayList<Path> pathSequence, int[] pixel1, int[] pixel2,
 			ArrayList<ArrayList<Integer>> buffersList) {
 
-		int index0 = 2;
+		int index0 = 6;
 		int index1 = 0;
 		int index2 = 0;
 		int index3 = 0;
@@ -187,6 +187,7 @@ public class DecompressSCAN {
 			ArrayList<Pixel> p = pathSequence.get(a).getPath();
 			Pixel actualPixel;
 			int b = 0;
+			// mi prendo i primi due pixel scansionati
 			if (a == 0) {
 				matrix[p.get(0).x][p.get(0).y] = new Color(pixel1[0], pixel1[1], pixel1[2]);
 				matrix[p.get(1).x][p.get(1).y] = new Color(pixel2[0], pixel2[1], pixel2[2]);
