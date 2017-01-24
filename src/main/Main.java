@@ -11,31 +11,40 @@ public class Main {
 	public static void main(String[] args) throws IOException{
 		if(args.length == 0){
 			System.out.println("Usage:");
-			System.out.println("-c [compress] -d [decompress] inputFile outputFile");
+			System.out.println("-c [compress] -d [decompress] -RGB[Color] -GRAY[Grayscale] inputFile outputFile");
 			return;
 		}
-		
+
 		if((args.length == 1 && args[0].equals("-h"))){
 			if(args[0].equals("-h")){
 				System.out.println("Usage:");
-				System.out.println("-c [compress] -d [decompress] inputFile outputFile");
+				System.out.println("-c [compress] -d [decompress] -RGB[Color] -GRAY[Grayscale] inputFile outputFile");
 				return;
 			}
 		}
 
 		else {
-			if(args.length < 2 || args.length > 3)
+			if(args.length < 3 || args.length > 4)
 				System.out.println("Bad Parameters");
 			else{
 				if(args[0].equals("-c")){
 					System.out.println("Compressing...");
-					String inputFile = args[1];
-					String outputFile = args[2];
+					String color =  args[1];
+					String inputFile = args[2];
+					String outputFile = args[3];
 
 					long startTime = System.currentTimeMillis();
 
-					CompressSCAN compressor = new CompressSCAN(inputFile, outputFile);
-					compressor.compress(); // crea il file compress
+					if(color.equals("-RGB")){
+						CompressSCAN compressor = new CompressSCAN(inputFile, outputFile);
+						compressor.compress(); // crea il file compress
+					}
+					else if(color.equals("-GRAY")){
+						CompressSCAN_GRAY compressor = new CompressSCAN_GRAY(inputFile, outputFile);
+						compressor.compress();
+					}
+					else
+						System.out.println("Bad Parameters");
 
 					long stopTime = System.currentTimeMillis();
 					long elapsedTime = stopTime - startTime;
@@ -51,13 +60,22 @@ public class Main {
 				}
 				else if(args[0].equals("-d")){
 					System.out.println("Decompressing...");
-					String inputFile = args[1];
-					String outputFile = args[2];
+					String color =  args[1];
+					String inputFile = args[2];
+					String outputFile = args[3];
 
 					long startTime = System.currentTimeMillis();
 
-					DecompressSCAN decompressor = new DecompressSCAN(inputFile, outputFile);
-					decompressor.decompress();
+					if(color.equals("-RGB")){
+						DecompressSCAN decompressor = new DecompressSCAN(inputFile, outputFile);
+						decompressor.decompress();
+					}
+					else if(color.equals("-GRAY")){
+						DecompressSCAN_GRAY decompressor = new DecompressSCAN_GRAY(inputFile, outputFile);
+						decompressor.decompress();
+					}
+					else
+						System.out.println("Bad Parameters");
 
 					long stopTime = System.currentTimeMillis();
 					long elapsedTime = stopTime - startTime;
