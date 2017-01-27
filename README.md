@@ -6,8 +6,8 @@ Our implementation works both on 8bit gray-scale that on 24bit RGB images.
 
 ##Usage
 
-$java -jar SCAN.jar -h
-c [compress] -d [decompress] -RGB[Color] -GRAY[Grayscale] inputFile outputFile
+$java -jar SCAN.jar
+-c [compress] -d [decompress] -RGB[Color] -GRAY[Grayscale] inputFile outputFile
 
 ## Authors
 * **Rita D'Ambrosio** [Linkedin](https://it.linkedin.com/in/ritdamb)
