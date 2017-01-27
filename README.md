@@ -1,5 +1,6 @@
 # SCAN
 SCAN is a lossless image compression algorithm, presented by [Lossless compression and information hiding in images](http://www.sciencedirect.com/science/article/pii/S0031320303002887).
+Our implementation works both on 8bit gray-scale that on 24bit RGB images.
 
 
 
